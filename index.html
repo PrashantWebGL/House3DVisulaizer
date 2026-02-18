@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON to 3D Layout</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="three-canvas"></canvas>
+      
+      <div class="overlay">
+        <header>
+          <h1>House 3D Visualizer</h1>
+          <p>Transform your wall data into immersive 3D models</p>
+        </header>
+
+        <div class="controls-panel">
+          <div class="upload-section">
+            <label for="json-upload" class="upload-btn">
+              <span class="icon">📁</span>
+              <span>Upload JSON</span>
+              <input type="file" id="json-upload" accept=".json" />
+            </label>
+            <p class="file-info">Select a JSON file to begin</p>
+          </div>
+
+          <div class="legend">
+            <div class="legend-item"><span class="color perimeter"></span> Perimeter Wall</div>
+            <div class="legend-item"><span class="color interior"></span> Interior Wall</div>
+            <div class="legend-item"><span class="color foundation"></span> Foundation</div>
+            <div class="legend-item"><span class="color knee"></span> Knee Wall</div>
+          </div>
+
+          <div class="stats" id="stats-panel" style="display: none;">
+            <p>Walls Detected: <span id="wall-count">0</span></p>
+          </div>
+        </div>
+
+        <footer>
+          <p>Drag to rotate • Scroll to zoom • Right click to pan</p>
+        </footer>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
