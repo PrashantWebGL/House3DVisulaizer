@@ -1,51 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JSON to 3D Layout</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div id="app">
-      <canvas id="three-canvas"></canvas>
-      
-      <div class="overlay">
-        <header>
-          <h1>House 3D Visualizer</h1>
-          <p>Transform your wall data into immersive 3D models</p>
-        </header>
 
-        <div class="controls-panel">
-          <div class="upload-section">
-            <label for="json-upload" class="upload-btn">
-              <span class="icon">📁</span>
-              <span>Upload JSON</span>
-              <input type="file" id="json-upload" accept=".json" />
-            </label>
-            <p class="file-info">Select a JSON file to begin</p>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>House 3D Visualizer</title>
+  <meta name="description" content="Transform Paradigm Estimate roofing JSON data into immersive 3D models." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
 
-          <div class="legend">
-            <div class="legend-item"><span class="color perimeter"></span> Perimeter Wall</div>
-            <div class="legend-item"><span class="color interior"></span> Interior Wall</div>
-            <div class="legend-item"><span class="color foundation"></span> Foundation</div>
-            <div class="legend-item"><span class="color knee"></span> Knee Wall</div>
-          </div>
+<body>
+  <div id="app">
+    <canvas id="three-canvas"></canvas>
 
-          <div class="stats" id="stats-panel" style="display: none;">
-            <p>Walls Detected: <span id="wall-count">0</span></p>
-          </div>
+    <div class="overlay">
+      <header>
+        <h1>House 3D Visualizer</h1>
+        <p>Upload a Paradigm Estimate JSON to view roofing framing in 3D</p>
+      </header>
+
+      <div class="controls-panel">
+        <div class="upload-section">
+          <label for="json-upload" class="upload-btn">
+            <span class="icon">📁</span>
+            <span>Upload JSON</span>
+            <input type="file" id="json-upload" accept=".json" />
+          </label>
+          <p class="file-info">Select a project JSON file to begin</p>
         </div>
 
-        <footer>
-          <p>Drag to rotate • Scroll to zoom • Right click to pan</p>
-        </footer>
+        <!-- Legend: updated dynamically by JS -->
+        <div class="legend">
+          <div class="legend-item"><span class="color" style="background:#f97316"></span>Roof Panel / Rafter</div>
+          <div class="legend-item"><span class="color" style="background:#22d3ee"></span>Eave</div>
+          <div class="legend-item"><span class="color" style="background:#a855f7"></span>Ridge</div>
+          <div class="legend-item"><span class="color" style="background:#fbbf24"></span>Hip</div>
+          <div class="legend-item"><span class="color" style="background:#60a5fa"></span>Valley</div>
+          <div class="legend-item"><span class="color" style="background:#4ade80"></span>Gable</div>
+        </div>
+
+        <div class="stats" id="stats-panel" style="display: none;">
+          <p class="stats-title">📊 Record Breakdown</p>
+          <div id="stats-list"></div>
+        </div>
       </div>
+
+      <footer>
+        <p>Drag to rotate &bull; Scroll to zoom &bull; Right-click to pan</p>
+      </footer>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>
