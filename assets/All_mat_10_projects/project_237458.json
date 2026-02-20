@@ -1,0 +1,49 @@
+{
+  "project_id": "237458",
+  "portal": "237458",
+  "record_count": 1,
+  "records": [
+    {
+      "jiraKey": "MTP-142765",
+      "portalNumber": "237458",
+      "materialType": "cantilever_closure",
+      "settings": {
+        "name": "Cantilever Closure",
+        "count": "1",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "ed81fad3-149c-4792-96a7-722e70ab0590",
+        "quantity": 1,
+        "bundle_name": "MAIN FLOOR DECK",
+        "rcm_building_id": "77ee4cc3-811c-4991-866a-4204d5729ded",
+        "ignore_for_report": "false"
+      },
+      "additionalData": {
+        "scale_factor": "1/4\""
+      },
+      "coordinates": "[[2305.381286861953,366.18506764776066]]",
+      "coordinates_image": [
+        [
+          2305.381286861953,
+          366.18506764776066
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          576.3453217154882,
+          91.54626691194017
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "",
+      "bundle_name": "MAIN FLOOR DECK",
+      "fileURL": "https://estimatesprodstorage.blob.core.windows.net/digitizer/237458/markupplan/85935cb6-58e1-4c17-b6c2-11a29b2d3db4/images/page-6.jpeg",
+      "uuid": "85935cb6-58e1-4c17-b6c2-11a29b2d3db4",
+      "pageno": 6
+    }
+  ]
+}

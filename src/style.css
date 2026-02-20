@@ -49,7 +49,7 @@ body {
   z-index: 10;
 }
 
-.overlay > * {
+.overlay>* {
   pointer-events: auto;
 }
 
@@ -58,6 +58,7 @@ header h1 {
   font-weight: 600;
   background: linear-gradient(to right, #818cf8, #c084fc);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 0.5rem;
 }
@@ -137,15 +138,49 @@ header p {
   border-radius: 3px;
 }
 
-.color.perimeter { background-color: #ef4444; }
-.color.interior { background-color: #3b82f6; }
-.color.foundation { background-color: #64748b; }
-.color.knee { background-color: #f59e0b; }
+.color.perimeter {
+  background-color: #ef4444;
+}
+
+.color.interior {
+  background-color: #3b82f6;
+}
+
+.color.foundation {
+  background-color: #64748b;
+}
+
+.color.knee {
+  background-color: #f59e0b;
+}
 
 .stats {
   border-top: 1px solid var(--glass-border);
   padding-top: 1rem;
   font-size: 0.9rem;
+}
+
+.stats-title {
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.stat-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 footer {
