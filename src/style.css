@@ -53,6 +53,34 @@ body {
   pointer-events: auto;
 }
 
+.guided-nav-controls {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(99, 102, 241, 0.32);
+  border-radius: 999px;
+  display: flex;
+  gap: 0.5rem;
+  left: 50%;
+  padding: 0.35rem 0.5rem;
+  position: absolute;
+  top: 1rem;
+  transform: translateX(-50%);
+  z-index: 15;
+}
+
+.guided-nav-btn {
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  padding: 0.45rem 0.8rem;
+}
+
+#guided-stop-label {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+  min-width: 5.8rem;
+  text-align: center;
+}
+
 header h1 {
   font-size: 2.5rem;
   font-weight: 600;
@@ -120,13 +148,76 @@ header p {
   color: var(--text-muted);
 }
 
+.walkthrough-controls {
+  border-top: 1px solid var(--glass-border);
+  margin-bottom: 1.35rem;
+  padding-top: 1rem;
+}
+
+.walkthrough-line {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  margin-bottom: 0.55rem;
+}
+
+.walkthrough-label {
+  color: var(--text-muted);
+  font-size: 0.83rem;
+  min-width: 7.4rem;
+}
+
+.walkthrough-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.75rem;
+  color: var(--text-main);
+  flex: 1;
+  font-size: 0.84rem;
+  outline: none;
+  padding: 0.45rem 0.6rem;
+}
+
+.walkthrough-btn {
+  font-size: 0.82rem;
+  padding: 0.58rem 0.6rem;
+}
+
+.walkthrough-hint {
+  color: #94a3b8;
+  font-size: 0.76rem;
+  margin-top: 0.15rem;
+}
+
+.wall-edit-controls {
+  border-top: 1px solid var(--glass-border);
+  margin-bottom: 0.7rem;
+  padding-top: 0.8rem;
+}
+
+.wall-edit-line {
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.83rem;
+  margin-bottom: 0;
+  user-select: none;
+}
+
+.wall-edit-line input[type="checkbox"] {
+  accent-color: #6366f1;
+}
+
 .legend {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.7rem;
   border-top: 1px solid var(--glass-border);
-  padding-top: 1.5rem;
+  padding-top: 0.85rem;
+}
+
+.legend:empty {
+  display: none;
 }
 
 .legend-item {
@@ -161,13 +252,20 @@ header p {
 
 .stats {
   border-top: 1px solid var(--glass-border);
+  height: 225px;
   padding-top: 1rem;
   font-size: 0.9rem;
 }
 
 .estimate-open-btn {
-  margin-top: 0.85rem;
+  margin-top: 0.6rem;
   width: 100%;
+}
+
+.stats-scroll {
+  height: calc(225px - 2.4rem);
+  overflow-y: auto;
+  padding-right: 0.2rem;
 }
 
 .stats-title {
