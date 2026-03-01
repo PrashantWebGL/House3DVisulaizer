@@ -17,6 +17,12 @@
     <canvas id="three-canvas"></canvas>
 
     <div class="overlay">
+      <div id="guided-nav-controls" class="guided-nav-controls" style="display:none;">
+        <button id="guided-prev-btn" class="btn-wall-close guided-nav-btn" type="button">Prev</button>
+        <span id="guided-stop-label">Stop 1 / 1</span>
+        <button id="guided-next-btn" class="btn-wall-apply guided-nav-btn" type="button">Next</button>
+      </div>
+
       <header>
         <h1>House 3D Visualizer</h1>
         <p class="upload-tagline">Upload a Accion JSON to view roofing framing in 3D</p>
@@ -48,6 +54,35 @@
           </div>
         </div>
 
+        <div class="walkthrough-controls">
+          <div class="walkthrough-line">
+            <label for="walkthrough-mode" class="walkthrough-label">Walkthrough Mode</label>
+            <select id="walkthrough-mode" class="walkthrough-select">
+              <option value="guided">Guided</option>
+              <option value="free">Free Navigation</option>
+            </select>
+          </div>
+          <div class="walkthrough-line">
+            <button id="start-walkthrough-btn" class="btn-wall-apply walkthrough-btn" type="button">Start Walkthrough</button>
+            <button id="stop-walkthrough-btn" class="btn-wall-close walkthrough-btn" type="button">Stop</button>
+          </div>
+          <div class="walkthrough-line">
+            <label class="walkthrough-line wall-edit-line" for="guided-path-edit-toggle" style="margin-bottom:0;">
+              <input type="checkbox" id="guided-path-edit-toggle" />
+              <span>Add Stops (click floor)</span>
+            </label>
+            <button id="guided-clear-stops-btn" class="btn-wall-close walkthrough-btn" type="button">Clear Stops</button>
+          </div>
+          <p class="walkthrough-hint">Free mode: W/A/S/D + mouse look</p>
+        </div>
+
+        <div class="wall-edit-controls">
+          <label class="walkthrough-line wall-edit-line" for="wall-edit-toggle">
+            <input type="checkbox" id="wall-edit-toggle" />
+            <span>Enable Wall Edit</span>
+          </label>
+        </div>
+
         <!-- Legend: updated dynamically by JS -->
         <div class="legend">
           <div class="legend-item"><span class="color" style="background:#f97316"></span>Roof Panel / Rafter</div>
@@ -61,13 +96,15 @@
 
         <div class="stats" id="stats-panel" style="display: none;">
           <p class="stats-title">📊 Record Breakdown</p>
-          <div id="wall-summary" class="wall-summary" style="display:none;">
-            <p class="wall-summary-title">🧱 Wall Types</p>
-            <div id="wall-summary-list"></div>
+          <div class="stats-scroll">
+            <div id="wall-summary" class="wall-summary" style="display:none;">
+              <p class="wall-summary-title">🧱 Wall Types</p>
+              <div id="wall-summary-list"></div>
+            </div>
+            <div id="stats-list"></div>
           </div>
-          <div id="stats-list"></div>
-          <button id="show-estimate-btn" class="btn-wall-apply estimate-open-btn" type="button">Show Estimate</button>
         </div>
+        <button id="show-estimate-btn" class="btn-wall-apply estimate-open-btn" type="button">Show Estimate</button>
       </div>
 
       <footer>

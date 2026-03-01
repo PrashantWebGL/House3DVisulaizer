@@ -1,6 +1,7 @@
 import './style.css';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { CSG } from 'three-csg-ts';
 import { inject } from '@vercel/analytics';
 
@@ -66,6 +67,577 @@ interface EstimateRow {
   wallType: string;
   volume: number;
   price: number;
+}
+
+interface WallEditSnapshot {
+  height: number;
+  length: number;
+  thickness: number;
+  colorHex: string;
+  baseElev: number;
+  worldPos: THREE.Vector3;
+  worldRotY: number;
+}
+
+interface WallEditHistoryEntry {
+  mesh: THREE.Mesh;
+  before: WallEditSnapshot;
+  after: WallEditSnapshot;
+}
+
+class WaypointManager {
+  private readonly eyeHeight: number;
+  private autoPoints: THREE.Vector3[] = [];
+  private customPoints: THREE.Vector3[] = [];
+
+  constructor(eyeHeight = 5.5) {
+    this.eyeHeight = eyeHeight;
+  }
+
+  public rebuildFromWalls(wallMeshes: THREE.Mesh[]) {
+    const box = new THREE.Box3();
+    let hasBounds = false;
+    wallMeshes.forEach((mesh) => {
+      const b = new THREE.Box3().setFromObject(mesh);
+      if (!Number.isFinite(b.min.x) || !Number.isFinite(b.max.x)) return;
+      if (!hasBounds) {
+        box.copy(b);
+        hasBounds = true;
+      } else {
+        box.union(b);
+      }
+    });
+
+    if (!hasBounds) {
+      this.autoPoints = [];
+      return;
+    }
+
+    const minX = box.min.x;
+    const maxX = box.max.x;
+    const minZ = box.min.z;
+    const maxZ = box.max.z;
+    const marginX = Math.max(1.2, (maxX - minX) * 0.12);
+    const marginZ = Math.max(1.2, (maxZ - minZ) * 0.12);
+    const centerX = (minX + maxX) / 2;
+    const centerZ = (minZ + maxZ) / 2;
+
+    this.autoPoints = [
+      new THREE.Vector3(minX + marginX, this.eyeHeight, maxZ - marginZ), // entrance
+      new THREE.Vector3(centerX, this.eyeHeight, centerZ),                 // living
+      new THREE.Vector3(maxX - marginX, this.eyeHeight, centerZ),          // kitchen
+      new THREE.Vector3(maxX - marginX, this.eyeHeight, minZ + marginZ),   // bedroom 1
+      new THREE.Vector3(minX + marginX, this.eyeHeight, minZ + marginZ),   // bedroom 2
+    ];
+  }
+
+  public addCustomStop(point: THREE.Vector3) {
+    const p = point.clone();
+    p.y = this.eyeHeight;
+    this.customPoints.push(p);
+  }
+
+  public clearCustomStops() {
+    this.customPoints = [];
+  }
+
+  public getCustomStops(): THREE.Vector3[] {
+    return this.customPoints.map((p) => p.clone());
+  }
+
+  public getWaypoints(): THREE.Vector3[] {
+    if (this.customPoints.length >= 2) return this.customPoints.map((p) => p.clone());
+    return this.autoPoints.map((p) => p.clone());
+  }
+}
+
+interface GuidedState {
+  visible: boolean;
+  current: number;
+  total: number;
+  canPrev: boolean;
+  canNext: boolean;
+}
+
+class CameraMovement {
+  private readonly camera: THREE.PerspectiveCamera;
+  private readonly eyeHeight: number;
+  private readonly velocity = new THREE.Vector3();
+  private readonly input = { forward: false, backward: false, left: false, right: false };
+  private active = false;
+
+  private readonly maxSpeed = 12; // feet/sec
+  private readonly accel = 12;
+  private readonly damping = 10;
+
+  constructor(camera: THREE.PerspectiveCamera, _controls: PointerLockControls, eyeHeight = 5.5) {
+    this.camera = camera;
+    this.eyeHeight = eyeHeight;
+    document.addEventListener('keydown', this.onKeyDown);
+    document.addEventListener('keyup', this.onKeyUp);
+  }
+
+  public setActive(isActive: boolean) {
+    this.active = isActive;
+    if (!isActive) this.velocity.set(0, 0, 0);
+  }
+
+  public update(delta: number, isBlocked: (candidate: THREE.Vector3) => boolean) {
+    if (!this.active) return;
+
+    const forward = new THREE.Vector3();
+    this.camera.getWorldDirection(forward);
+    forward.y = 0;
+    if (forward.lengthSq() > 0) forward.normalize();
+    const right = new THREE.Vector3(-forward.z, 0, forward.x);
+
+    const desiredDir = new THREE.Vector3();
+    if (this.input.forward) desiredDir.add(forward);
+    if (this.input.backward) desiredDir.sub(forward);
+    if (this.input.left) desiredDir.sub(right);
+    if (this.input.right) desiredDir.add(right);
+    if (desiredDir.lengthSq() > 0) desiredDir.normalize();
+
+    const targetVel = desiredDir.multiplyScalar(this.maxSpeed);
+    const blend = 1 - Math.exp(-this.accel * delta);
+    this.velocity.lerp(targetVel, blend);
+    if (desiredDir.lengthSq() === 0) {
+      const decay = Math.exp(-this.damping * delta);
+      this.velocity.multiplyScalar(decay);
+    }
+
+    const current = this.camera.position.clone();
+    current.y = this.eyeHeight;
+
+    const candidate = current.clone().addScaledVector(this.velocity, delta);
+    candidate.y = this.eyeHeight;
+
+    if (!isBlocked(candidate)) {
+      this.camera.position.copy(candidate);
+      return;
+    }
+
+    const tryX = current.clone();
+    tryX.x = candidate.x;
+    tryX.y = this.eyeHeight;
+
+    const tryZ = current.clone();
+    tryZ.z = candidate.z;
+    tryZ.y = this.eyeHeight;
+
+    if (!isBlocked(tryX)) {
+      this.camera.position.copy(tryX);
+      this.velocity.z = 0;
+    } else if (!isBlocked(tryZ)) {
+      this.camera.position.copy(tryZ);
+      this.velocity.x = 0;
+    } else {
+      this.velocity.set(0, 0, 0);
+    }
+  }
+
+  private onKeyDown = (e: KeyboardEvent) => {
+    if (!this.active) return;
+    if (e.code === 'KeyW') this.input.forward = true;
+    if (e.code === 'KeyS') this.input.backward = true;
+    if (e.code === 'KeyA') this.input.left = true;
+    if (e.code === 'KeyD') this.input.right = true;
+  };
+
+  private onKeyUp = (e: KeyboardEvent) => {
+    if (e.code === 'KeyW') this.input.forward = false;
+    if (e.code === 'KeyS') this.input.backward = false;
+    if (e.code === 'KeyA') this.input.left = false;
+    if (e.code === 'KeyD') this.input.right = false;
+  };
+}
+
+class WalkthroughController {
+  private readonly camera: THREE.PerspectiveCamera;
+  private readonly orbitControls: OrbitControls;
+  private readonly pointerControls: PointerLockControls;
+  private readonly movement: CameraMovement;
+  private readonly waypointManager: WaypointManager;
+  private readonly getWallMeshes: () => THREE.Mesh[];
+  private readonly getDoorMeshes: () => THREE.Mesh[];
+  private readonly getFloorMeshes: () => THREE.Mesh[];
+  private readonly onGuidedStateChange: (state: GuidedState) => void;
+  private readonly eyeHeight = 5.5;
+  private collisionBoxes: THREE.Box3[] = [];
+  private doorBoxes: THREE.Box3[] = [];
+  private readonly markerGroup = new THREE.Group();
+
+  private mode: 'none' | 'guided' | 'free' = 'none';
+  private pathEditEnabled = false;
+  private curve: THREE.CatmullRomCurve3 | null = null;
+  private guidedPoints: THREE.Vector3[] = [];
+  private guidedStopTs: number[] = [];
+  private currentStopIndex = 0;
+  private targetStopIndex = 0;
+  private segmentMoving = false;
+  private segmentProgress = 0;
+  private segmentStartT = 0;
+  private segmentEndT = 0;
+  private segmentDuration = 0.1;
+  private readonly guidedSpeed = 8; // feet/sec
+  private readonly orbitDefaults: { rotate: boolean; zoom: boolean; pan: boolean };
+  private guidedYaw = 0;
+  private guidedPitch = 0;
+  private guidedMouseDown = false;
+  private lastMouseX = 0;
+  private lastMouseY = 0;
+
+  constructor(
+    scene: THREE.Scene,
+    camera: THREE.PerspectiveCamera,
+    orbitControls: OrbitControls,
+    domElement: HTMLElement,
+    getWallMeshes: () => THREE.Mesh[],
+    getDoorMeshes: () => THREE.Mesh[],
+    getFloorMeshes: () => THREE.Mesh[],
+    onGuidedStateChange: (state: GuidedState) => void
+  ) {
+    this.camera = camera;
+    this.orbitControls = orbitControls;
+    this.pointerControls = new PointerLockControls(camera, domElement);
+    this.movement = new CameraMovement(camera, this.pointerControls, this.eyeHeight);
+    this.waypointManager = new WaypointManager(this.eyeHeight);
+    this.getWallMeshes = getWallMeshes;
+    this.getDoorMeshes = getDoorMeshes;
+    this.getFloorMeshes = getFloorMeshes;
+    this.onGuidedStateChange = onGuidedStateChange;
+    this.orbitDefaults = {
+      rotate: orbitControls.enableRotate,
+      zoom: orbitControls.enableZoom,
+      pan: orbitControls.enablePan,
+    };
+    scene.add(this.pointerControls.getObject());
+    scene.add(this.markerGroup);
+  }
+
+  public syncEnvironment() {
+    const walls = this.getWallMeshes();
+    this.waypointManager.rebuildFromWalls(walls);
+    const radius = 0.38;
+    this.collisionBoxes = walls.map((mesh) => {
+      const box = new THREE.Box3().setFromObject(mesh);
+      box.min.x -= radius;
+      box.max.x += radius;
+      box.min.z -= radius;
+      box.max.z += radius;
+      return box;
+    });
+
+    this.doorBoxes = this.getDoorMeshes().map((mesh) => {
+      const b = new THREE.Box3().setFromObject(mesh);
+      b.min.x -= 0.85;
+      b.max.x += 0.85;
+      b.min.z -= 0.85;
+      b.max.z += 0.85;
+      b.min.y = -Infinity;
+      b.max.y = Infinity;
+      return b;
+    });
+    this.updateStopMarkers();
+  }
+
+  public start(mode: 'guided' | 'free'): boolean {
+    this.syncEnvironment();
+    if (!this.getWallMeshes().length) return false;
+    this.stop();
+    this.mode = mode;
+    this.orbitControls.enabled = false;
+    this.orbitControls.enableRotate = false;
+    this.orbitControls.enableZoom = false;
+    this.orbitControls.enablePan = false;
+
+    if (mode === 'guided') return this.startGuided();
+    return this.startFree();
+  }
+
+  public stop() {
+    if (this.mode === 'free' && this.pointerControls.isLocked) {
+      this.pointerControls.unlock();
+    }
+    this.movement.setActive(false);
+    this.mode = 'none';
+    this.curve = null;
+    this.guidedPoints = [];
+    this.guidedStopTs = [];
+    this.currentStopIndex = 0;
+    this.targetStopIndex = 0;
+    this.segmentMoving = false;
+    this.segmentProgress = 0;
+    this.orbitControls.enabled = true;
+    this.orbitControls.enableRotate = this.orbitDefaults.rotate;
+    this.orbitControls.enableZoom = this.orbitDefaults.zoom;
+    this.orbitControls.enablePan = this.orbitDefaults.pan;
+    this.emitGuidedState();
+  }
+
+  public handleGuidedPointerDown(e: PointerEvent): boolean {
+    if (this.mode !== 'guided') return false;
+    this.guidedMouseDown = true;
+    this.lastMouseX = e.clientX;
+    this.lastMouseY = e.clientY;
+    return true;
+  }
+
+  public handleGuidedPointerMove(e: PointerEvent): boolean {
+    if (this.mode !== 'guided' || !this.guidedMouseDown) return false;
+    const dx = e.clientX - this.lastMouseX;
+    const dy = e.clientY - this.lastMouseY;
+    this.lastMouseX = e.clientX;
+    this.lastMouseY = e.clientY;
+
+    this.guidedYaw -= dx * 0.003;
+    this.guidedPitch -= dy * 0.003;
+    this.guidedPitch = Math.max(-1.2, Math.min(1.2, this.guidedPitch));
+    return true;
+  }
+
+  public handleGuidedPointerUp(): boolean {
+    if (this.mode !== 'guided') return false;
+    this.guidedMouseDown = false;
+    return true;
+  }
+
+  public handleGuidedWheel(e: WheelEvent): boolean {
+    if (this.mode !== 'guided') return false;
+    const nextFov = this.camera.fov + (e.deltaY * 0.02);
+    this.camera.fov = Math.max(35, Math.min(90, nextFov));
+    this.camera.updateProjectionMatrix();
+    return true;
+  }
+
+  public update(delta: number) {
+    if (this.mode === 'guided' && this.curve) {
+      if (this.segmentMoving) {
+        this.segmentProgress = Math.min(1, this.segmentProgress + (delta / this.segmentDuration));
+        const t = this.segmentStartT + ((this.segmentEndT - this.segmentStartT) * this.segmentProgress);
+        this.positionCameraOnCurve(t, this.segmentEndT >= this.segmentStartT ? 1 : -1);
+
+        if (this.segmentProgress >= 1) {
+          this.segmentMoving = false;
+          this.currentStopIndex = this.targetStopIndex;
+          this.emitGuidedState();
+        }
+      } else {
+        this.positionCameraOnCurve(this.guidedStopTs[this.currentStopIndex], 1);
+      }
+      return;
+    }
+
+    if (this.mode === 'free') {
+      this.camera.position.y = this.eyeHeight;
+      this.movement.update(delta, (candidate) => this.isBlocked(candidate));
+    }
+  }
+
+  public isActive(): boolean {
+    return this.mode !== 'none';
+  }
+
+  public setPathEditEnabled(enabled: boolean) {
+    this.pathEditEnabled = enabled;
+  }
+
+  public clearCustomStops() {
+    this.waypointManager.clearCustomStops();
+    this.updateStopMarkers();
+    this.emitGuidedState();
+  }
+
+  public tryAddStopFromRay(raycaster: THREE.Raycaster): boolean {
+    if (!this.pathEditEnabled) return false;
+    const floorMeshes = this.getFloorMeshes();
+    if (!floorMeshes.length) return false;
+
+    const hits = raycaster.intersectObjects(floorMeshes, false);
+    if (!hits.length) return false;
+
+    const p = hits[0].point.clone();
+    p.y = this.eyeHeight;
+    this.waypointManager.addCustomStop(p);
+    this.updateStopMarkers();
+    this.emitGuidedState();
+    return true;
+  }
+
+  public goNextStop() {
+    if (this.mode !== 'guided' || this.segmentMoving) return;
+    if (this.currentStopIndex >= this.guidedPoints.length - 1) return;
+    this.startSegment(this.currentStopIndex + 1);
+  }
+
+  public goPrevStop() {
+    if (this.mode !== 'guided' || this.segmentMoving) return;
+    if (this.currentStopIndex <= 0) return;
+    this.startSegment(this.currentStopIndex - 1);
+  }
+
+  private startGuided(): boolean {
+    const points = this.waypointManager.getWaypoints();
+    if (points.length < 2) {
+      this.stop();
+      return false;
+    }
+    this.guidedPoints = points.map((p) => p.clone().setY(this.eyeHeight));
+    this.curve = new THREE.CatmullRomCurve3(this.guidedPoints, false, 'centripetal', 0.35);
+    this.curve.arcLengthDivisions = 200;
+    this.guidedStopTs = this.computeStopTs(this.guidedPoints, this.curve);
+    this.currentStopIndex = 0;
+    this.targetStopIndex = 0;
+    this.segmentMoving = false;
+    this.segmentProgress = 0;
+    this.guidedYaw = 0;
+    this.guidedPitch = 0;
+    this.guidedMouseDown = false;
+    this.camera.position.copy(this.guidedPoints[0]);
+    this.camera.lookAt(this.guidedPoints[1]);
+    this.emitGuidedState();
+    return true;
+  }
+
+  private startFree(): boolean {
+    const points = this.waypointManager.getWaypoints();
+    if (points.length > 0) this.camera.position.copy(points[0]);
+    this.camera.position.y = this.eyeHeight;
+    this.movement.setActive(true);
+    this.pointerControls.lock();
+    this.emitGuidedState();
+    return true;
+  }
+
+  private startSegment(targetStopIndex: number) {
+    if (!this.curve) return;
+    this.targetStopIndex = targetStopIndex;
+    this.segmentStartT = this.guidedStopTs[this.currentStopIndex];
+    this.segmentEndT = this.guidedStopTs[targetStopIndex];
+    const segLength = this.sampleCurveDistance(this.segmentStartT, this.segmentEndT);
+    this.segmentDuration = Math.max(0.25, segLength / this.guidedSpeed);
+    this.segmentProgress = 0;
+    this.segmentMoving = true;
+    this.emitGuidedState();
+  }
+
+  private sampleCurveDistance(startT: number, endT: number): number {
+    if (!this.curve) return 0;
+    const steps = 48;
+    let distance = 0;
+    let prev = this.curve.getPointAt(startT);
+    for (let i = 1; i <= steps; i++) {
+      const t = startT + ((endT - startT) * (i / steps));
+      const p = this.curve.getPointAt(t);
+      distance += p.distanceTo(prev);
+      prev = p;
+    }
+    return distance;
+  }
+
+  private positionCameraOnCurve(t: number, direction: 1 | -1) {
+    if (!this.curve) return;
+    const clampedT = Math.max(0, Math.min(1, t));
+    const point = this.curve.getPointAt(clampedT);
+    const lookT = Math.max(0, Math.min(1, clampedT + (direction * 0.003)));
+    const tangentPoint = this.curve.getPointAt(lookT);
+    this.camera.position.set(point.x, this.eyeHeight, point.z);
+    const baseForward = tangentPoint.clone().sub(this.camera.position).normalize();
+    const lookOffset = new THREE.Vector3(0, 0, -1).applyEuler(new THREE.Euler(this.guidedPitch, this.guidedYaw, 0, 'YXZ'));
+    const mixedForward = baseForward.clone().add(lookOffset.multiplyScalar(0.85)).normalize();
+    const lookTarget = this.camera.position.clone().add(mixedForward);
+    lookTarget.y = this.camera.position.y + mixedForward.y;
+    this.camera.lookAt(lookTarget);
+  }
+
+  private computeStopTs(points: THREE.Vector3[], curve: THREE.CatmullRomCurve3): number[] {
+    const ts: number[] = [];
+    const samples = 600;
+    const sampledPoints: THREE.Vector3[] = [];
+    for (let i = 0; i <= samples; i++) {
+      sampledPoints.push(curve.getPoint(i / samples));
+    }
+
+    points.forEach((stopPoint, idx) => {
+      if (idx === 0) {
+        ts.push(0);
+        return;
+      }
+      if (idx === points.length - 1) {
+        ts.push(1);
+        return;
+      }
+      let bestI = 0;
+      let bestD = Infinity;
+      for (let i = 0; i <= samples; i++) {
+        const d = sampledPoints[i].distanceTo(stopPoint);
+        if (d < bestD) {
+          bestD = d;
+          bestI = i;
+        }
+      }
+      ts.push(bestI / samples);
+    });
+
+    // Ensure increasing order for stable segment movement.
+    for (let i = 1; i < ts.length; i++) {
+      ts[i] = Math.max(ts[i], ts[i - 1]);
+    }
+    ts[ts.length - 1] = 1;
+    return ts;
+  }
+
+  private updateStopMarkers() {
+    while (this.markerGroup.children.length) {
+      const c = this.markerGroup.children[0] as THREE.Mesh;
+      if (c.geometry) c.geometry.dispose();
+      const mat = c.material;
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+      else if (mat) (mat as THREE.Material).dispose();
+      this.markerGroup.remove(c);
+    }
+
+    const points = this.waypointManager.getCustomStops();
+    points.forEach((point, idx) => {
+      const marker = new THREE.Mesh(
+        new THREE.SphereGeometry(0.23, 14, 12),
+        new THREE.MeshStandardMaterial({
+          color: idx === 0 ? 0x22c55e : 0x60a5fa,
+          emissive: 0x0f172a,
+          roughness: 0.25,
+          metalness: 0.12,
+        })
+      );
+      marker.position.set(point.x, 0.2, point.z);
+      marker.userData.walkthroughMarker = true;
+      this.markerGroup.add(marker);
+    });
+  }
+
+  private emitGuidedState() {
+    const total = this.guidedPoints.length;
+    const visible = this.mode === 'guided' && total > 1;
+    this.onGuidedStateChange({
+      visible,
+      current: visible ? this.currentStopIndex + 1 : 0,
+      total: visible ? total : 0,
+      canPrev: visible && !this.segmentMoving && this.currentStopIndex > 0,
+      canNext: visible && !this.segmentMoving && this.currentStopIndex < total - 1,
+    });
+  }
+
+  private isBlocked(candidate: THREE.Vector3): boolean {
+    const nearDoorPortal = this.doorBoxes.some((doorBox) => doorBox.distanceToPoint(candidate) < 0.75);
+    if (nearDoorPortal) return false;
+
+    for (const box of this.collisionBoxes) {
+      if (!box.containsPoint(candidate)) continue;
+      const isInsideDoorPortal = this.doorBoxes.some((doorBox) => doorBox.containsPoint(candidate));
+      if (isInsideDoorPortal) continue;
+      return true;
+    }
+    return false;
+  }
 }
 
 // ─── SCALE helpers ───────────────────────────────────────────────────────────
@@ -147,6 +719,8 @@ class HouseViewer {
   private renderer: THREE.WebGLRenderer;
   private controls: OrbitControls;
   private buildingGroup: THREE.Group;
+  private clock = new THREE.Clock();
+  private walkthroughController: WalkthroughController;
 
   // ─── Wall selection ─────────────────────────────────────────────────────
   private raycaster = new THREE.Raycaster();
@@ -154,7 +728,11 @@ class HouseViewer {
   /** Maps every wall mesh → its data so we can edit / re-render it */
   private wallRegistry = new Map<THREE.Mesh, WallEntry>();
   private selectedWall: THREE.Mesh | null = null;
+  private wallEditEnabled = false;
   private estimateRows: EstimateRow[] = [];
+  private readonly maxHistorySize = 20;
+  private undoStack: WallEditHistoryEntry[] = [];
+  private redoStack: WallEditHistoryEntry[] = [];
 
   // ─── Interactive Cutout Placement ───────────────────────────────────────
   private placementMode: 'none' | 'door' | 'window' = 'none';
@@ -185,6 +763,16 @@ class HouseViewer {
 
     this.buildingGroup = new THREE.Group();
     this.scene.add(this.buildingGroup);
+    this.walkthroughController = new WalkthroughController(
+      this.scene,
+      this.camera,
+      this.controls,
+      this.renderer.domElement,
+      () => this.getWallMeshes(),
+      () => this.getDoorOpeningMeshes(),
+      () => this.getFloorMeshes(),
+      (state) => this.updateGuidedNavUI(state)
+    );
 
     this.initLights();
     this.initGrid();
@@ -227,6 +815,21 @@ class HouseViewer {
 
     // Hover → show pointer cursor when over a wall
     canvas.addEventListener('pointermove', (e) => this.onCanvasHover(e));
+    canvas.addEventListener('pointermove', (e) => {
+      if (this.walkthroughController.handleGuidedPointerMove(e)) {
+        e.preventDefault();
+      }
+    });
+    canvas.addEventListener('pointerup', (e) => {
+      if (this.walkthroughController.handleGuidedPointerUp()) {
+        e.preventDefault();
+      }
+    });
+    canvas.addEventListener('wheel', (e) => {
+      if (this.walkthroughController.handleGuidedWheel(e)) {
+        e.preventDefault();
+      }
+    }, { passive: false });
 
     // Listen to cutout mode radio buttons
     document.querySelectorAll('input[name="cutout-mode"]').forEach(radio => {
@@ -252,6 +855,52 @@ class HouseViewer {
       this.cancelCutoutPlacement();
     });
     document.getElementById('cutout-btn-apply')?.addEventListener('click', () => this.applyCutout());
+
+    document.addEventListener('keydown', (e) => this.handleUndoRedoShortcuts(e));
+
+    const startWalkBtn = document.getElementById('start-walkthrough-btn') as HTMLButtonElement;
+    const stopWalkBtn = document.getElementById('stop-walkthrough-btn') as HTMLButtonElement;
+    const modeSelect = document.getElementById('walkthrough-mode') as HTMLSelectElement;
+    const guidedPathEditToggle = document.getElementById('guided-path-edit-toggle') as HTMLInputElement;
+    const guidedClearStopsBtn = document.getElementById('guided-clear-stops-btn') as HTMLButtonElement;
+    const guidedPrevBtn = document.getElementById('guided-prev-btn') as HTMLButtonElement;
+    const guidedNextBtn = document.getElementById('guided-next-btn') as HTMLButtonElement;
+    const wallEditToggle = document.getElementById('wall-edit-toggle') as HTMLInputElement;
+
+    startWalkBtn.addEventListener('click', () => {
+      const mode = (modeSelect.value === 'free' ? 'free' : 'guided') as 'guided' | 'free';
+      this.walkthroughController.syncEnvironment();
+      this.walkthroughController.start(mode);
+    });
+
+    stopWalkBtn.addEventListener('click', () => {
+      this.walkthroughController.stop();
+    });
+
+    guidedPathEditToggle.checked = false;
+    guidedPathEditToggle.addEventListener('change', () => {
+      const enable = guidedPathEditToggle.checked && modeSelect.value === 'guided';
+      this.walkthroughController.setPathEditEnabled(enable);
+    });
+
+    modeSelect.addEventListener('change', () => {
+      const enable = guidedPathEditToggle.checked && modeSelect.value === 'guided';
+      this.walkthroughController.setPathEditEnabled(enable);
+    });
+
+    guidedClearStopsBtn.addEventListener('click', () => {
+      this.walkthroughController.clearCustomStops();
+    });
+
+    guidedPrevBtn.addEventListener('click', () => this.walkthroughController.goPrevStop());
+    guidedNextBtn.addEventListener('click', () => this.walkthroughController.goNextStop());
+
+    wallEditToggle.checked = false;
+    this.wallEditEnabled = false;
+    wallEditToggle.addEventListener('change', () => {
+      this.wallEditEnabled = wallEditToggle.checked;
+      if (!this.wallEditEnabled && this.selectedWall) this.closeModal();
+    });
   }
 
   private initModalListeners() {
@@ -619,6 +1268,7 @@ class HouseViewer {
     // Display Mesh shadow config
     if (this.placementMode === 'door') {
       this.activeDisplayMesh.castShadow = true;
+      this.activeDisplayMesh.userData.walkthroughDoor = true;
     }
 
     // Keep display mesh in scene permanently. Nullify pointers so cancel ignores it.
@@ -635,6 +1285,7 @@ class HouseViewer {
     if (resetRadio) resetRadio.checked = true;
     this.placementMode = 'none';
     this.refreshEstimateIfOpen();
+    this.walkthroughController.syncEnvironment();
   }
 
   // ─── File upload ─────────────────────────────────────────────────────────
@@ -729,6 +1380,7 @@ class HouseViewer {
 
     this.frameCamera();
     this.updateLegendForNewFormat();
+    this.walkthroughController.syncEnvironment();
   }
 
   // ─── Polygon (roof panels) ────────────────────────────────────────────────
@@ -944,6 +1596,12 @@ class HouseViewer {
         // Thin it back out for display
         displayMesh.geometry = new THREE.BoxGeometry(cutoutWidth, cutoutHeight, 0.45);
         this.buildingGroup.add(displayMesh);
+      } else {
+        const doorPortalMesh = mesh.clone();
+        doorPortalMesh.geometry = new THREE.BoxGeometry(cutoutWidth, cutoutHeight, 0.45);
+        doorPortalMesh.visible = false;
+        doorPortalMesh.userData.walkthroughDoor = true;
+        this.buildingGroup.add(doorPortalMesh);
       }
     });
 
@@ -1042,6 +1700,7 @@ class HouseViewer {
 
     this.frameCamera();
     this.updateLegendForOldFormat();
+    this.walkthroughController.syncEnvironment();
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1107,11 +1766,11 @@ class HouseViewer {
 
       // Create a thin box for the floor so it has thickness
       const geo = new THREE.BoxGeometry(width, floorThicknessFt, depth);
-      // Floor transparency: 30% transparent => opacity = 0.7
-      const mat = new THREE.MeshStandardMaterial({ color: floorColor, side: THREE.DoubleSide, transparent: true, opacity: 0.7, roughness: 0.85, metalness: 0.02 });
+      const mat = new THREE.MeshStandardMaterial({ color: floorColor, side: THREE.DoubleSide, roughness: 0.85, metalness: 0.02 });
       const mesh = new THREE.Mesh(geo, mat);
       // Box geometry is centered — place it so top of floor sits at defaultFloorHeight
       mesh.position.set(((x1 + x2) / 2 - cx) * SCALE, defaultFloorHeight + (floorThicknessFt / 2), ((y1 + y2) / 2 - cy) * SCALE);
+      mesh.userData.walkthroughFloor = true;
       mesh.receiveShadow = true;
       mesh.castShadow = false;
       this.buildingGroup.add(mesh);
@@ -1259,6 +1918,7 @@ class HouseViewer {
       const centerYpx = (y1 + y2) / 2;
       mesh.position.set((centerXpx - cx) * SCALE, doorHeight / 2, (centerYpx - cy) * SCALE);
       mesh.rotation.y = -angleRad;
+      mesh.userData.walkthroughDoor = true;
       mesh.castShadow = true;
       mesh.receiveShadow = false;
       this.buildingGroup.add(mesh);
@@ -1338,6 +1998,7 @@ class HouseViewer {
 
     this.frameCamera();
     this.updateLegendForOldFormat();
+    this.walkthroughController.syncEnvironment();
   }
   // private renderOldFormat(data: OldJsonData, _fileName: string) {
   //   this.clearScene();
@@ -1489,8 +2150,44 @@ class HouseViewer {
     return Array.from(this.wallRegistry.keys());
   }
 
+  private getFloorMeshes(): THREE.Mesh[] {
+    return this.buildingGroup.children
+      .filter((child) => (child as THREE.Mesh).isMesh)
+      .map((child) => child as THREE.Mesh)
+      .filter((mesh) => mesh.userData && mesh.userData.walkthroughFloor === true);
+  }
+
+  private getDoorOpeningMeshes(): THREE.Mesh[] {
+    return this.buildingGroup.children
+      .filter((child) => (child as THREE.Mesh).isMesh)
+      .map((child) => child as THREE.Mesh)
+      .filter((mesh) => mesh.userData && mesh.userData.walkthroughDoor === true);
+  }
+
+  private updateGuidedNavUI(state: GuidedState) {
+    const wrap = document.getElementById('guided-nav-controls') as HTMLElement;
+    const label = document.getElementById('guided-stop-label') as HTMLElement;
+    const prev = document.getElementById('guided-prev-btn') as HTMLButtonElement;
+    const next = document.getElementById('guided-next-btn') as HTMLButtonElement;
+
+    wrap.style.display = state.visible ? 'flex' : 'none';
+    if (!state.visible) return;
+
+    label.textContent = `Stop ${state.current} / ${state.total}`;
+    prev.disabled = !state.canPrev;
+    next.disabled = !state.canNext;
+    prev.style.opacity = state.canPrev ? '1' : '0.55';
+    next.style.opacity = state.canNext ? '1' : '0.55';
+    prev.style.cursor = state.canPrev ? 'pointer' : 'not-allowed';
+    next.style.cursor = state.canNext ? 'pointer' : 'not-allowed';
+  }
+
   private onCanvasClick(e: PointerEvent) {
     if (e.button !== 0) return; // left click only
+    if (this.walkthroughController.handleGuidedPointerDown(e)) {
+      e.preventDefault();
+      return;
+    }
 
     const canvas = this.renderer.domElement;
     const rect = canvas.getBoundingClientRect();
@@ -1498,6 +2195,12 @@ class HouseViewer {
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
+
+    if (this.walkthroughController.tryAddStopFromRay(this.raycaster)) {
+      e.stopPropagation();
+      return;
+    }
+
     const wallMeshes = this.getWallMeshes();
     const hits = this.raycaster.intersectObjects(wallMeshes, false);
 
@@ -1505,8 +2208,10 @@ class HouseViewer {
       const hit = hits[0].object as THREE.Mesh;
       if (this.placementMode !== 'none') {
         this.startCutoutPlacement(hit);
-      } else {
+      } else if (this.wallEditEnabled) {
         this.selectWall(hit);
+      } else {
+        this.deselectWall();
       }
       // Prevent orbit controls consuming this event
       e.stopPropagation();
@@ -1527,8 +2232,11 @@ class HouseViewer {
     this.pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
     this.raycaster.setFromCamera(this.pointer, this.camera);
-    const hits = this.raycaster.intersectObjects(this.getWallMeshes(), false);
-    document.body.classList.toggle('wall-hover', hits.length > 0);
+    const wallHits = this.raycaster.intersectObjects(this.getWallMeshes(), false);
+    const floorHits = this.raycaster.intersectObjects(this.getFloorMeshes(), false);
+    const shouldShowHover = this.placementMode !== 'none' || this.wallEditEnabled;
+    const showForPathEdit = floorHits.length > 0 && (document.getElementById('guided-path-edit-toggle') as HTMLInputElement).checked;
+    document.body.classList.toggle('wall-hover', (shouldShowHover && wallHits.length > 0) || showForPathEdit);
   }
 
   private selectWall(mesh: THREE.Mesh) {
@@ -1608,6 +2316,7 @@ class HouseViewer {
     const newLength = parseFloat(lengthIn.value);
     const newThickness = parseFloat(widthIn.value);
     const newColorHex = this.normalizeHexColor(colorIn.value);
+    const beforeSnapshot = this.captureWallSnapshot(mesh, entry);
 
     if (
       isNaN(newHeight) || newHeight <= 0 ||
@@ -1639,15 +2348,126 @@ class HouseViewer {
     entry.worldPos.y = mesh.position.y;
     this.addAutoFloorFromWalls();
     this.refreshEstimateIfOpen();
+    this.walkthroughController.syncEnvironment();
+
+    const afterSnapshot = this.captureWallSnapshot(mesh, entry);
+    this.pushHistory(mesh, beforeSnapshot, afterSnapshot);
 
     // Close modal and deselect
     this.closeModal();
+  }
+
+  private captureWallSnapshot(mesh: THREE.Mesh, entry: WallEntry): WallEditSnapshot {
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    return {
+      height: entry.height,
+      length: entry.length,
+      thickness: entry.thickness,
+      colorHex: `#${mat.color.getHexString()}`,
+      baseElev: entry.baseElev,
+      worldPos: entry.worldPos.clone(),
+      worldRotY: entry.worldRotY,
+    };
+  }
+
+  private applyWallSnapshot(mesh: THREE.Mesh, snapshot: WallEditSnapshot) {
+    const entry = this.wallRegistry.get(mesh);
+    if (!entry) return;
+
+    mesh.geometry.dispose();
+    mesh.geometry = new THREE.BoxGeometry(snapshot.length, snapshot.height, snapshot.thickness);
+    mesh.position.copy(snapshot.worldPos);
+    mesh.position.y = snapshot.baseElev + snapshot.height / 2;
+    mesh.rotation.y = snapshot.worldRotY;
+
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+    mat.color.set(snapshot.colorHex);
+
+    entry.height = snapshot.height;
+    entry.length = snapshot.length;
+    entry.thickness = snapshot.thickness;
+    entry.baseElev = snapshot.baseElev;
+    entry.worldPos.copy(snapshot.worldPos);
+    entry.worldPos.y = mesh.position.y;
+    entry.worldRotY = snapshot.worldRotY;
+    entry.originalColor = mat.color.getHex();
+    (entry.record.settings as any).color = snapshot.colorHex;
+  }
+
+  private pushHistory(mesh: THREE.Mesh, before: WallEditSnapshot, after: WallEditSnapshot) {
+    const isSame =
+      before.height === after.height &&
+      before.length === after.length &&
+      before.thickness === after.thickness &&
+      before.colorHex === after.colorHex;
+    if (isSame) return;
+
+    this.undoStack.push({ mesh, before, after });
+    if (this.undoStack.length > this.maxHistorySize) this.undoStack.shift();
+    this.redoStack = [];
+  }
+
+  private undoWallEdit() {
+    const action = this.undoStack.pop();
+    if (!action) return;
+    if (!this.wallRegistry.has(action.mesh)) return;
+
+    this.applyWallSnapshot(action.mesh, action.before);
+    this.redoStack.push(action);
+    if (this.redoStack.length > this.maxHistorySize) this.redoStack.shift();
+    this.addAutoFloorFromWalls();
+    this.refreshEstimateIfOpen();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private redoWallEdit() {
+    const action = this.redoStack.pop();
+    if (!action) return;
+    if (!this.wallRegistry.has(action.mesh)) return;
+
+    this.applyWallSnapshot(action.mesh, action.after);
+    this.undoStack.push(action);
+    if (this.undoStack.length > this.maxHistorySize) this.undoStack.shift();
+    this.addAutoFloorFromWalls();
+    this.refreshEstimateIfOpen();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private handleUndoRedoShortcuts(e: KeyboardEvent) {
+    const target = e.target as HTMLElement | null;
+    if (target) {
+      const tag = target.tagName;
+      const isEditable = target.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+      if (isEditable) return;
+    }
+
+    const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+    const primary = isMac ? e.metaKey : e.ctrlKey;
+    if (!primary || e.altKey) return;
+    if (e.key.toLowerCase() !== 'z' && e.key.toLowerCase() !== 'y') return;
+
+    if (e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (isMac && e.shiftKey) this.redoWallEdit();
+      else if (!isMac && e.shiftKey) this.redoWallEdit();
+      else this.undoWallEdit();
+      return;
+    }
+
+    if (!isMac && e.key.toLowerCase() === 'y') {
+      e.preventDefault();
+      this.redoWallEdit();
+    }
   }
 
   // ─── Scene helpers ────────────────────────────────────────────────────────
   private clearScene() {
     this.wallRegistry.clear();
     this.selectedWall = null;
+    this.undoStack = [];
+    this.redoStack = [];
+    this.walkthroughController.stop();
+    this.walkthroughController.clearCustomStops();
     this.closeEstimateModal();
     this.updateEstimateButtonState();
     document.body.classList.remove('wall-hover');
@@ -1702,11 +2522,10 @@ class HouseViewer {
       color: 0x0f172a,
       roughness: 0.88,
       metalness: 0.02,
-      transparent: true,
-      opacity: 0.90,
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.name = 'auto-generated-floor';
+    floorMesh.userData.walkthroughFloor = true;
     floorMesh.position.set(
       (globalBox.min.x + globalBox.max.x) / 2,
       topY - floorThickness / 2,
@@ -1746,7 +2565,9 @@ class HouseViewer {
 
   private animate() {
     requestAnimationFrame(() => this.animate());
-    this.controls.update();
+    const delta = this.clock.getDelta();
+    if (!this.walkthroughController.isActive()) this.controls.update();
+    this.walkthroughController.update(delta);
     this.renderer.render(this.scene, this.camera);
   }
 }
