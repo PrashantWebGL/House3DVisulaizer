@@ -68,9 +68,14 @@ header p {
   font-weight: 300;
 }
 
+.upload-tagline {
+  color: #c4b5fd;
+}
+
 .controls-panel {
   width: 320px;
-  background: var(--glass);
+  background: rgba(15, 23, 42, 0.85);
+  /* Dark gray/slate backing */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
@@ -160,6 +165,11 @@ header p {
   font-size: 0.9rem;
 }
 
+.estimate-open-btn {
+  margin-top: 0.85rem;
+  width: 100%;
+}
+
 .stats-title {
   font-weight: 600;
   color: var(--text-main);
@@ -188,4 +198,386 @@ footer {
   color: var(--text-muted);
   font-size: 0.85rem;
   padding-bottom: 1rem;
+}
+
+/* ─── Wall Summary Section ───────────────────────────────────── */
+.wall-summary {
+  background: rgba(99, 102, 241, 0.08);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.wall-summary-title {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: #a5b4fc;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+/* ─── Wall Modal Backdrop ──────────────────────────────────────── */
+.wall-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Wall Modal Card ─────────────────────────────────────────── */
+.wall-modal-card {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  width: 340px;
+  max-width: 92vw;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: slideUp 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.wall-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.wall-modal-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.wall-modal-label {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 0.15rem;
+}
+
+.wall-modal-type {
+  font-size: 0.8rem;
+  color: #818cf8;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ─── Modal Body / Inputs ─────────────────────────────────────── */
+.wall-modal-body {
+  margin-bottom: 1.5rem;
+}
+
+.wall-modal-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Thickness spans full width */
+.wall-modal-fields-grid .wall-modal-field:last-child,
+.wall-modal-field.wall-modal-field-full {
+  grid-column: 1 / -1;
+}
+
+.wall-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.wall-modal-field label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.wall-modal-field label .unit {
+  color: #475569;
+  margin-left: 0.2rem;
+}
+
+.wall-modal-field input[type="number"] {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  color: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  outline: none;
+  padding: 0.65rem 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.wall-modal-field input[type="color"] {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  height: 2.8rem;
+  outline: none;
+  padding: 0.3rem;
+  width: 100%;
+}
+
+.wall-modal-field input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.wall-modal-field input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.wall-modal-field input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.wall-color-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.wall-color-label {
+  margin-right: 0.25rem;
+  min-width: 3rem;
+}
+
+.wall-color-row #wall-color-input {
+  flex: 0 0 3.25rem;
+  height: 2.5rem;
+  padding: 0.2rem;
+}
+
+.wall-modal-field input[type="number"]:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.wall-modal-info {
+  font-size: 0.78rem;
+  color: #64748b;
+  min-height: 1rem;
+}
+
+/* ─── Modal Footer Buttons ────────────────────────────────────── */
+.wall-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-wall-close,
+.btn-wall-apply {
+  flex: 1;
+  border: none;
+  border-radius: 0.875rem;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-wall-close {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-wall-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+}
+
+.btn-wall-apply {
+  background: linear-gradient(135deg, #6366f1, #818cf8);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+}
+
+.btn-wall-apply:hover {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+  transform: translateY(-1px);
+}
+
+.btn-wall-apply:active {
+  transform: translateY(0);
+}
+
+/* ─── Estimate Modal ─────────────────────────────────────────── */
+.estimate-modal-card {
+  background: rgba(15, 23, 42, 0.93);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 1.5rem;
+  padding: 1.35rem;
+  width: min(900px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.estimate-modal-body {
+  margin: 0.85rem 0 1rem;
+}
+
+.estimate-table-wrap {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 0.8rem;
+  overflow: hidden;
+}
+
+.estimate-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.estimate-table th,
+.estimate-table td {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  padding: 0.6rem 0.55rem;
+  text-align: left;
+}
+
+.estimate-table th {
+  background: rgba(15, 23, 42, 0.75);
+  color: #cbd5e1;
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.estimate-table td {
+  color: #e2e8f0;
+  font-size: 0.82rem;
+}
+
+.estimate-price-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.6rem;
+  color: #f8fafc;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.85rem;
+  outline: none;
+  padding: 0.45rem 0.5rem;
+  width: 7rem;
+}
+
+.estimate-price-input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.estimate-total-row {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.8rem;
+  padding: 0.5rem 0.3rem 0;
+}
+
+.estimate-total-row span {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.estimate-total-row strong {
+  color: #34d399;
+  font-size: 1.2rem;
+}
+
+/* ─── Wall-hover cursor ───────────────────────────────────────── */
+body.wall-hover #three-canvas {
+  cursor: pointer;
+}
+
+/* ─── Cutout Toolbar ────────────────────────────────────────────── */
+.cutout-toolbar {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 320px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 50;
+}
+
+.cutout-toolbar-header {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.cutout-toolbar-header span {
+  color: #a78bfa;
+}
+
+.cutout-slider-group {
+  margin-bottom: 1rem;
+}
+
+.cutout-slider-group label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.cutout-slider-group input[type="range"] {
+  width: 100%;
+  accent-color: #8b5cf6;
+}
+
+.cutout-toolbar-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
