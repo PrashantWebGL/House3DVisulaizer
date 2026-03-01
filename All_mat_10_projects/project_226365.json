@@ -1,0 +1,333 @@
+{
+  "project_id": "226365",
+  "portal": "226365",
+  "record_count": 5,
+  "records": [
+    {
+      "jiraKey": "MTP-132314",
+      "portalNumber": "226365",
+      "materialType": "roof_system",
+      "settings": {
+        "area": 169.37037766689477,
+        "name": "Rafter Dimensional 2X12",
+        "type": "Rafter",
+        "count": "1",
+        "pitch": "5",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "49bfdb92-8ae4-4dcf-b6ef-7ddb7a15aeb9",
+        "material": "Dimensional",
+        "quantity": 169.37037766689477,
+        "direction": "Horizontal",
+        "board_size": "2X12",
+        "oc_spacing": "32",
+        "bundle_name": "ROOF FRAMING",
+        "linear_total": 52.69750149174063,
+        "rcm_building_id": "5522b1c8-676e-4779-bf37-7d4eae59d839",
+        "advanced_settings": {
+          "rafters": {}
+        },
+        "ignore_for_report": false
+      },
+      "additionalData": {
+        "scale_factor": "1/4\"",
+        "is_marked_done": true
+      },
+      "coordinates": "[[2663.8111318791534,1582.2667101905818],[2663.8111318791534,1011.4323506462772],[3081.0549253049858,1011.4323506462772],[3081.0549253049858,1582.2667101905818]]",
+      "coordinates_image": [
+        [
+          2663.8111318791534,
+          1582.2667101905818
+        ],
+        [
+          2663.8111318791534,
+          1011.4323506462772
+        ],
+        [
+          3081.0549253049858,
+          1011.4323506462772
+        ],
+        [
+          3081.0549253049858,
+          1582.2667101905818
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          665.9527829697884,
+          395.56667754764544
+        ],
+        [
+          665.9527829697884,
+          252.8580876615693
+        ],
+        [
+          770.2637313262464,
+          252.8580876615693
+        ],
+        [
+          770.2637313262464,
+          395.56667754764544
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "Dimensional",
+      "bundle_name": "ROOF FRAMING",
+      "fileURL": "https://estimatesprodstorage.paradigmestimate.com/digitizer/226365/markupplan/09e13ae4-cc32-4de0-b6e8-2372f5d371d1/images/page-5.jpeg",
+      "uuid": "09e13ae4-cc32-4de0-b6e8-2372f5d371d1",
+      "pageno": 5
+    },
+    {
+      "jiraKey": "MTP-132314",
+      "portalNumber": "226365",
+      "materialType": "roof_system",
+      "settings": {
+        "area": 169.37037766689477,
+        "name": "Rafter Dimensional 2X12",
+        "type": "Rafter",
+        "count": "1",
+        "pitch": "5",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "49bfdb92-8ae4-4dcf-b6ef-7ddb7a15aeb9",
+        "material": "Dimensional",
+        "quantity": 169.37037766689477,
+        "direction": "Horizontal",
+        "board_size": "2X12",
+        "oc_spacing": "32",
+        "bundle_name": "ROOF FRAMING",
+        "linear_total": 52.69750149174063,
+        "rcm_building_id": "5522b1c8-676e-4779-bf37-7d4eae59d839",
+        "advanced_settings": {
+          "rafters": {}
+        },
+        "ignore_for_report": false
+      },
+      "additionalData": {
+        "scale_factor": "1/4\"",
+        "is_marked_done": true
+      },
+      "coordinates": "[[2663.8111318791534,1071.8495304184294],[3081.0549253049858,1071.8495304184294]]",
+      "coordinates_image": [
+        [
+          2663.8111318791534,
+          1071.8495304184294
+        ],
+        [
+          3081.0549253049858,
+          1071.8495304184294
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          665.9527829697884,
+          267.96238260460734
+        ],
+        [
+          770.2637313262464,
+          267.96238260460734
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "Dimensional",
+      "bundle_name": "ROOF FRAMING",
+      "fileURL": "https://estimatesprodstorage.paradigmestimate.com/digitizer/226365/markupplan/09e13ae4-cc32-4de0-b6e8-2372f5d371d1/images/page-5.jpeg",
+      "uuid": "09e13ae4-cc32-4de0-b6e8-2372f5d371d1",
+      "pageno": 5
+    },
+    {
+      "jiraKey": "MTP-132314",
+      "portalNumber": "226365",
+      "materialType": "roof_system",
+      "settings": {
+        "area": 169.37037766689477,
+        "name": "Rafter Dimensional 2X12",
+        "type": "Rafter",
+        "count": "1",
+        "pitch": "5",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "49bfdb92-8ae4-4dcf-b6ef-7ddb7a15aeb9",
+        "material": "Dimensional",
+        "quantity": 169.37037766689477,
+        "direction": "Horizontal",
+        "board_size": "2X12",
+        "oc_spacing": "32",
+        "bundle_name": "ROOF FRAMING",
+        "linear_total": 52.69750149174063,
+        "rcm_building_id": "5522b1c8-676e-4779-bf37-7d4eae59d839",
+        "advanced_settings": {
+          "rafters": {}
+        },
+        "ignore_for_report": false
+      },
+      "additionalData": {
+        "scale_factor": "1/4\"",
+        "is_marked_done": true
+      },
+      "coordinates": "[[2663.8111318791534,1221.8495304184294],[3081.0549253049858,1221.8495304184294]]",
+      "coordinates_image": [
+        [
+          2663.8111318791534,
+          1221.8495304184294
+        ],
+        [
+          3081.0549253049858,
+          1221.8495304184294
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          665.9527829697884,
+          305.46238260460734
+        ],
+        [
+          770.2637313262464,
+          305.46238260460734
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "Dimensional",
+      "bundle_name": "ROOF FRAMING",
+      "fileURL": "https://estimatesprodstorage.paradigmestimate.com/digitizer/226365/markupplan/09e13ae4-cc32-4de0-b6e8-2372f5d371d1/images/page-5.jpeg",
+      "uuid": "09e13ae4-cc32-4de0-b6e8-2372f5d371d1",
+      "pageno": 5
+    },
+    {
+      "jiraKey": "MTP-132314",
+      "portalNumber": "226365",
+      "materialType": "roof_system",
+      "settings": {
+        "area": 169.37037766689477,
+        "name": "Rafter Dimensional 2X12",
+        "type": "Rafter",
+        "count": "1",
+        "pitch": "5",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "49bfdb92-8ae4-4dcf-b6ef-7ddb7a15aeb9",
+        "material": "Dimensional",
+        "quantity": 169.37037766689477,
+        "direction": "Horizontal",
+        "board_size": "2X12",
+        "oc_spacing": "32",
+        "bundle_name": "ROOF FRAMING",
+        "linear_total": 52.69750149174063,
+        "rcm_building_id": "5522b1c8-676e-4779-bf37-7d4eae59d839",
+        "advanced_settings": {
+          "rafters": {}
+        },
+        "ignore_for_report": false
+      },
+      "additionalData": {
+        "scale_factor": "1/4\"",
+        "is_marked_done": true
+      },
+      "coordinates": "[[2663.8111318791534,1371.8495304184294],[3081.0549253049858,1371.8495304184294]]",
+      "coordinates_image": [
+        [
+          2663.8111318791534,
+          1371.8495304184294
+        ],
+        [
+          3081.0549253049858,
+          1371.8495304184294
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          665.9527829697884,
+          342.96238260460734
+        ],
+        [
+          770.2637313262464,
+          342.96238260460734
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "Dimensional",
+      "bundle_name": "ROOF FRAMING",
+      "fileURL": "https://estimatesprodstorage.paradigmestimate.com/digitizer/226365/markupplan/09e13ae4-cc32-4de0-b6e8-2372f5d371d1/images/page-5.jpeg",
+      "uuid": "09e13ae4-cc32-4de0-b6e8-2372f5d371d1",
+      "pageno": 5
+    },
+    {
+      "jiraKey": "MTP-132314",
+      "portalNumber": "226365",
+      "materialType": "roof_system",
+      "settings": {
+        "area": 169.37037766689477,
+        "name": "Rafter Dimensional 2X12",
+        "type": "Rafter",
+        "count": "1",
+        "pitch": "5",
+        "folder": "FRAMING MEASUREMENT FILE",
+        "rcm_id": "49bfdb92-8ae4-4dcf-b6ef-7ddb7a15aeb9",
+        "material": "Dimensional",
+        "quantity": 169.37037766689477,
+        "direction": "Horizontal",
+        "board_size": "2X12",
+        "oc_spacing": "32",
+        "bundle_name": "ROOF FRAMING",
+        "linear_total": 52.69750149174063,
+        "rcm_building_id": "5522b1c8-676e-4779-bf37-7d4eae59d839",
+        "advanced_settings": {
+          "rafters": {}
+        },
+        "ignore_for_report": false
+      },
+      "additionalData": {
+        "scale_factor": "1/4\"",
+        "is_marked_done": true
+      },
+      "coordinates": "[[2663.8111318791534,1521.8495304184294],[3081.0549253049858,1521.8495304184294]]",
+      "coordinates_image": [
+        [
+          2663.8111318791534,
+          1521.8495304184294
+        ],
+        [
+          3081.0549253049858,
+          1521.8495304184294
+        ]
+      ],
+      "coordinates_real_world": [
+        [
+          665.9527829697884,
+          380.46238260460734
+        ],
+        [
+          770.2637313262464,
+          380.46238260460734
+        ]
+      ],
+      "scale_factor": "1/4\"",
+      "scale_factor_float": 0.25,
+      "width": "",
+      "height": "",
+      "count": "1",
+      "plies": "",
+      "material": "Dimensional",
+      "bundle_name": "ROOF FRAMING",
+      "fileURL": "https://estimatesprodstorage.paradigmestimate.com/digitizer/226365/markupplan/09e13ae4-cc32-4de0-b6e8-2372f5d371d1/images/page-5.jpeg",
+      "uuid": "09e13ae4-cc32-4de0-b6e8-2372f5d371d1",
+      "pageno": 5
+    }
+  ]
+}

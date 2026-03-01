@@ -19,7 +19,7 @@
     <div class="overlay">
       <header>
         <h1>House 3D Visualizer</h1>
-        <p>Upload a Paradigm Estimate JSON to view roofing framing in 3D</p>
+        <p class="upload-tagline">Upload a Accion JSON to view roofing framing in 3D</p>
       </header>
 
       <div class="controls-panel">
@@ -32,6 +32,22 @@
           <p class="file-info">Select a project JSON file to begin</p>
         </div>
 
+        <div class="cutout-controls"
+          style="margin-bottom: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <p class="stats-title" style="margin-bottom: 0.5rem;">🛠️ Add Cutouts</p>
+          <div style="display: flex; gap: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+              <input type="radio" name="cutout-mode" id="mode-add-window" value="window"> Add Window
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+              <input type="radio" name="cutout-mode" id="mode-add-door" value="door"> Add Door
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer;">
+              <input type="radio" name="cutout-mode" id="mode-none" value="none" checked> None
+            </label>
+          </div>
+        </div>
+
         <!-- Legend: updated dynamically by JS -->
         <div class="legend">
           <div class="legend-item"><span class="color" style="background:#f97316"></span>Roof Panel / Rafter</div>
@@ -40,11 +56,17 @@
           <div class="legend-item"><span class="color" style="background:#fbbf24"></span>Hip</div>
           <div class="legend-item"><span class="color" style="background:#60a5fa"></span>Valley</div>
           <div class="legend-item"><span class="color" style="background:#4ade80"></span>Gable</div>
+          <div class="legend-item"><span class="color" style="background:#94a3b8"></span>Wall</div>
         </div>
 
         <div class="stats" id="stats-panel" style="display: none;">
           <p class="stats-title">📊 Record Breakdown</p>
+          <div id="wall-summary" class="wall-summary" style="display:none;">
+            <p class="wall-summary-title">🧱 Wall Types</p>
+            <div id="wall-summary-list"></div>
+          </div>
           <div id="stats-list"></div>
+          <button id="show-estimate-btn" class="btn-wall-apply estimate-open-btn" type="button">Show Estimate</button>
         </div>
       </div>
 
@@ -53,6 +75,106 @@
       </footer>
     </div>
   </div>
+
+  <!-- Estimate / BOM Modal -->
+  <div id="estimate-modal" class="wall-modal-backdrop" style="display:none;" aria-modal="true" role="dialog">
+    <div class="estimate-modal-card" id="estimate-modal-card">
+      <div class="wall-modal-header">
+        <span class="wall-modal-icon">💵</span>
+        <div>
+          <p class="wall-modal-label">Bill Of Materials</p>
+          <p class="wall-modal-type">Walls Estimate (USD)</p>
+        </div>
+      </div>
+
+      <div class="estimate-modal-body">
+        <div class="estimate-table-wrap">
+          <table class="estimate-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Wall</th>
+                <th>Type</th>
+                <th>Volume (ft³)</th>
+                <th>Price ($)</th>
+              </tr>
+            </thead>
+            <tbody id="estimate-table-body"></tbody>
+          </table>
+        </div>
+        <div class="estimate-total-row">
+          <span>Final Price</span>
+          <strong id="estimate-final-total">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="wall-modal-footer">
+        <button id="estimate-close-btn" class="btn-wall-close" type="button">Close</button>
+        <button id="estimate-export-btn" class="btn-wall-apply" type="button">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wall Edit Modal -->
+  <div id="wall-modal" class="wall-modal-backdrop" style="display:none;" aria-modal="true" role="dialog">
+    <div class="wall-modal-card" id="wall-modal-card">
+      <div class="wall-modal-header">
+        <span class="wall-modal-icon">🧱</span>
+        <div>
+          <p class="wall-modal-label" id="wall-modal-label">Wall</p>
+          <p class="wall-modal-type" id="wall-modal-type">Type</p>
+        </div>
+      </div>
+      <div class="wall-modal-body">
+        <div class="wall-modal-fields-grid">
+          <div class="wall-modal-field">
+            <label for="wall-height-input">Height <span class="unit">(ft)</span></label>
+            <input type="number" id="wall-height-input" min="1" max="40" step="0.5" />
+          </div>
+          <div class="wall-modal-field">
+            <label for="wall-length-input">Length <span class="unit">(ft)</span></label>
+            <input type="number" id="wall-length-input" min="0.5" max="500" step="0.5" />
+          </div>
+          <div class="wall-modal-field">
+            <label for="wall-width-input">Thickness <span class="unit">(ft)</span></label>
+            <input type="number" id="wall-width-input" min="0.1" max="5" step="0.1" />
+          </div>
+          <div class="wall-modal-field wall-modal-field-full">
+            <div class="wall-color-row">
+              <label for="wall-color-input" class="wall-color-label">Color</label>
+              <input type="color" id="wall-color-input" />
+            </div>
+          </div>
+        </div>
+        <p class="wall-modal-info" id="wall-modal-info"></p>
+      </div>
+      <div class="wall-modal-footer">
+        <button id="wall-modal-close" class="btn-wall-close">✕ Close</button>
+        <button id="wall-modal-apply" class="btn-wall-apply">✓ Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cutout Placement Toolbar -->
+  <div id="cutout-toolbar" class="cutout-toolbar" style="display: none;">
+    <div class="cutout-toolbar-header">Placing <span id="cutout-toolbar-title">Window</span></div>
+
+    <div class="cutout-slider-group">
+      <label for="cutout-pos-x">Slide along Wall</label>
+      <input type="range" id="cutout-pos-x" min="-1" max="1" step="0.01" value="0" />
+    </div>
+
+    <div class="cutout-slider-group" id="cutout-pos-y-group">
+      <label for="cutout-pos-y">Elevation</label>
+      <input type="range" id="cutout-pos-y" min="0" max="6" step="0.1" value="3" />
+    </div>
+
+    <div class="cutout-toolbar-actions">
+      <button id="cutout-btn-cancel" class="btn-wall-close" style="flex:1;">Cancel</button>
+      <button id="cutout-btn-apply" class="btn-wall-apply" style="flex:1;">✓ Cut Wall</button>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 
