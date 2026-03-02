@@ -490,6 +490,35 @@ footer {
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+.wall-texture-swatches {
+  display: flex;
+  gap: 0.55rem;
+  padding-top: 0.15rem;
+}
+
+.texture-swatch {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: #334155;
+  background-position: center;
+  background-size: cover;
+  border: 2px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  cursor: pointer;
+  height: 2.1rem;
+  width: 2.1rem;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.texture-swatch:hover {
+  transform: translateY(-1px);
+}
+
+.texture-swatch.texture-swatch-active {
+  border-color: #f8fafc;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.45);
+}
+
 .wall-modal-info {
   font-size: 0.78rem;
   color: #64748b;
