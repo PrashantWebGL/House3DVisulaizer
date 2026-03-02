@@ -74,6 +74,7 @@ interface WallEditSnapshot {
   length: number;
   thickness: number;
   colorHex: string;
+  textureKey: string;
   baseElev: number;
   worldPos: THREE.Vector3;
   worldRotY: number;
@@ -664,6 +665,14 @@ const LABEL_MAP: Record<string, string> = {
   wall: 'Wall',
 };
 
+const WALL_TEXTURE_URLS: Record<string, string> = {
+  animalgrey: new URL('../assets/WallTexture/animalgrey.jpg', import.meta.url).href,
+  courtyard: new URL('../assets/WallTexture/courtyard.jpg', import.meta.url).href,
+  geometric: new URL('../assets/WallTexture/geometric.jpg', import.meta.url).href,
+  myrawhite: new URL('../assets/WallTexture/myrawhite.jpg', import.meta.url).href,
+  plaingreen: new URL('../assets/WallTexture/plaingreen.jpg', import.meta.url).href,
+};
+
 // ─── Wall-type colour palette ────────────────────────────────────────────────
 const WALL_TYPE_COLORS: Record<string, string> = {
   'Perimeter Wall': '#ef4444',
@@ -730,6 +739,9 @@ class HouseViewer {
   private selectedWall: THREE.Mesh | null = null;
   private wallEditEnabled = false;
   private estimateRows: EstimateRow[] = [];
+  private textureLoader = new THREE.TextureLoader();
+  private wallTextureCache = new Map<string, THREE.Texture>();
+  private activeModalTextureKey = 'none';
   private readonly maxHistorySize = 20;
   private undoStack: WallEditHistoryEntry[] = [];
   private redoStack: WallEditHistoryEntry[] = [];
@@ -909,6 +921,7 @@ class HouseViewer {
     const btnClose = document.getElementById('wall-modal-close')!;
     const btnApply = document.getElementById('wall-modal-apply')!;
     const colorIn = document.getElementById('wall-color-input') as HTMLInputElement;
+    const textureSwatches = document.querySelectorAll<HTMLButtonElement>('.texture-swatch');
 
     // Close on backdrop click (outside the card)
     modal.addEventListener('pointerdown', (e) => {
@@ -921,6 +934,12 @@ class HouseViewer {
     card.addEventListener('pointerdown', (e) => e.stopPropagation());
 
     colorIn.addEventListener('input', () => this.setModalColorControls(colorIn.value));
+    textureSwatches.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.textureKey || 'none';
+        this.setModalTextureSelection(key);
+      });
+    });
   }
 
   private initEstimateListeners() {
@@ -1138,6 +1157,62 @@ class HouseViewer {
 
     const colorIn = document.getElementById('wall-color-input') as HTMLInputElement;
     colorIn.value = normalized;
+  }
+
+  private normalizeTextureKey(rawKey: string | null | undefined): string {
+    if (!rawKey) return 'none';
+    return Object.prototype.hasOwnProperty.call(WALL_TEXTURE_URLS, rawKey) ? rawKey : 'none';
+  }
+
+  private getWallTextureKey(mesh: THREE.Mesh, entry: WallEntry): string {
+    const settingsAny = entry.record.settings as Record<string, unknown>;
+    const keyFromSettings = typeof settingsAny.texture === 'string' ? settingsAny.texture : null;
+    const keyFromMesh = typeof mesh.userData.wallTextureKey === 'string' ? mesh.userData.wallTextureKey : null;
+    return this.normalizeTextureKey(keyFromSettings || keyFromMesh);
+  }
+
+  private applyWallTexture(mesh: THREE.Mesh, entry: WallEntry, textureKey: string) {
+    const normalizedKey = this.normalizeTextureKey(textureKey);
+    const mat = mesh.material as THREE.MeshStandardMaterial;
+
+    if (normalizedKey === 'none') {
+      mat.map = null;
+      mat.roughness = 0.8;
+      mat.metalness = 0.1;
+      mat.needsUpdate = true;
+      mesh.userData.wallTextureKey = 'none';
+      (entry.record.settings as any).texture = 'none';
+      return;
+    }
+
+    let texture = this.wallTextureCache.get(normalizedKey);
+    if (!texture) {
+      texture = this.textureLoader.load(WALL_TEXTURE_URLS[normalizedKey]);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      this.wallTextureCache.set(normalizedKey, texture);
+    }
+
+    texture.repeat.set(Math.max(1, entry.length / 6), Math.max(1, entry.height / 6));
+    texture.needsUpdate = true;
+    mat.map = texture;
+    mat.color.set(0xffffff);
+    mat.roughness = 0.55;
+    mat.metalness = 0.04;
+    mat.needsUpdate = true;
+    mesh.userData.wallTextureKey = normalizedKey;
+    (entry.record.settings as any).texture = normalizedKey;
+  }
+
+  private setModalTextureSelection(textureKey: string) {
+    const normalized = this.normalizeTextureKey(textureKey);
+    this.activeModalTextureKey = normalized;
+    const swatches = document.querySelectorAll<HTMLButtonElement>('.texture-swatch');
+    swatches.forEach((btn) => {
+      const isActive = (btn.dataset.textureKey || 'none') === normalized;
+      btn.classList.toggle('texture-swatch-active', isActive);
+    });
   }
 
   // ─── Cutout Placement Logic ───────────────────────────────────────────────
@@ -1493,6 +1568,8 @@ class HouseViewer {
       worldPos: midPos.clone(),
       worldRotY: rotY,
     });
+    const entry = this.wallRegistry.get(mesh)!;
+    this.applyWallTexture(mesh, entry, typeof settings.texture === 'string' ? settings.texture : 'none');
 
     return mesh;
   }
@@ -1671,7 +1748,7 @@ class HouseViewer {
 
       const fakeRecord: NewRecord = {
         materialType: 'wall',
-        settings: { name: wallTypeLabel, type: w.room, height: String(wallHeight), floor_level: 'default' },
+        settings: { id: w.id, name: wallTypeLabel, type: w.room, height: String(wallHeight), floor_level: 'default' },
         coordinates_real_world: syntheticPts,
         scale_factor_float: scaleFactor,
       } as NewRecord;
@@ -2279,17 +2356,17 @@ class HouseViewer {
     const heightIn = document.getElementById('wall-height-input') as HTMLInputElement;
     const lengthIn = document.getElementById('wall-length-input') as HTMLInputElement;
     const widthIn = document.getElementById('wall-width-input') as HTMLInputElement;
-    const infoEl = document.getElementById('wall-modal-info')!;
     const mat = mesh.material as THREE.MeshStandardMaterial;
 
     labelEl.textContent = entry.label.replace(/(^\w+\s+){2}/, '') || entry.label;
-    typeEl.textContent = entry.wallType;
+    const settingsAny = entry.record.settings as Record<string, unknown>;
+    const wallId = settingsAny.id ?? settingsAny.wall_id ?? settingsAny.room_id ?? null;
+    typeEl.textContent = wallId ? `ID: ${String(wallId)}` : entry.wallType;
     heightIn.value = entry.height.toFixed(2);
     lengthIn.value = entry.length.toFixed(2);
     widthIn.value = entry.thickness.toFixed(2);
     this.setModalColorControls(`#${mat.color.getHexString()}`);
-    infoEl.textContent = `Floor: ${entry.record.settings.floor_level || '—'}`;
-    infoEl.style.color = '';
+    this.setModalTextureSelection(this.getWallTextureKey(mesh, entry));
 
     modal.style.display = 'flex';
     this.controls.enabled = false;
@@ -2316,6 +2393,7 @@ class HouseViewer {
     const newLength = parseFloat(lengthIn.value);
     const newThickness = parseFloat(widthIn.value);
     const newColorHex = this.normalizeHexColor(colorIn.value);
+    const textureKey = this.normalizeTextureKey(this.activeModalTextureKey);
     const beforeSnapshot = this.captureWallSnapshot(mesh, entry);
 
     if (
@@ -2344,6 +2422,7 @@ class HouseViewer {
     entry.thickness = newThickness;
     entry.originalColor = mat.color.getHex();
     (entry.record.settings as any).color = newColorHex;
+    this.applyWallTexture(mesh, entry, textureKey);
     // Update worldPos Y to match the new height centre
     entry.worldPos.y = mesh.position.y;
     this.addAutoFloorFromWalls();
@@ -2364,6 +2443,7 @@ class HouseViewer {
       length: entry.length,
       thickness: entry.thickness,
       colorHex: `#${mat.color.getHexString()}`,
+      textureKey: this.getWallTextureKey(mesh, entry),
       baseElev: entry.baseElev,
       worldPos: entry.worldPos.clone(),
       worldRotY: entry.worldRotY,
@@ -2392,6 +2472,7 @@ class HouseViewer {
     entry.worldRotY = snapshot.worldRotY;
     entry.originalColor = mat.color.getHex();
     (entry.record.settings as any).color = snapshot.colorHex;
+    this.applyWallTexture(mesh, entry, snapshot.textureKey);
   }
 
   private pushHistory(mesh: THREE.Mesh, before: WallEditSnapshot, after: WallEditSnapshot) {
@@ -2399,7 +2480,8 @@ class HouseViewer {
       before.height === after.height &&
       before.length === after.length &&
       before.thickness === after.thickness &&
-      before.colorHex === after.colorHex;
+      before.colorHex === after.colorHex &&
+      before.textureKey === after.textureKey;
     if (isSame) return;
 
     this.undoStack.push({ mesh, before, after });
