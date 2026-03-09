@@ -1,0 +1,387 @@
+{
+    "units": "feet",
+    "default_wall_height": 11,
+    "walls": [
+        {
+            "id": "wall_draw_01",
+            "room": "drawing_dining",
+            "start": {
+                "x": 0,
+                "y": 0
+            },
+            "end": {
+                "x": 16,
+                "y": 0
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_draw_02",
+            "room": "drawing_dining",
+            "start": {
+                "x": 16,
+                "y": 0
+            },
+            "end": {
+                "x": 16,
+                "y": 15.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_draw_04",
+            "room": "drawing_dining",
+            "start": {
+                "x": 0,
+                "y": 15.4
+            },
+            "end": {
+                "x": 0,
+                "y": 0
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_master_01",
+            "room": "master_bedroom",
+            "start": {
+                "x": 16,
+                "y": 0
+            },
+            "end": {
+                "x": 28,
+                "y": 0
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_master_02",
+            "room": "master_bedroom",
+            "start": {
+                "x": 28,
+                "y": 0
+            },
+            "end": {
+                "x": 28,
+                "y": 12
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_master_03",
+            "room": "master_bedroom",
+            "start": {
+                "x": 28,
+                "y": 12
+            },
+            "end": {
+                "x": 16,
+                "y": 12
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed2_01",
+            "room": "bedroom2",
+            "start": {
+                "x": 0,
+                "y": 15.4
+            },
+            "end": {
+                "x": 12,
+                "y": 15.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed2_03",
+            "room": "bedroom2",
+            "start": {
+                "x": 12,
+                "y": 27.4
+            },
+            "end": {
+                "x": 0,
+                "y": 27.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed2_04",
+            "room": "bedroom2",
+            "start": {
+                "x": 0,
+                "y": 27.4
+            },
+            "end": {
+                "x": 0,
+                "y": 15.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed3_01",
+            "room": "bedroom3",
+            "start": {
+                "x": 12,
+                "y": 15.4
+            },
+            "end": {
+                "x": 24,
+                "y": 15.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed3_02",
+            "room": "bedroom3",
+            "start": {
+                "x": 24,
+                "y": 15.4
+            },
+            "end": {
+                "x": 24,
+                "y": 27.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed3_03",
+            "room": "bedroom3",
+            "start": {
+                "x": 24,
+                "y": 27.4
+            },
+            "end": {
+                "x": 12,
+                "y": 27.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_bed3_04",
+            "room": "bedroom3",
+            "start": {
+                "x": 12,
+                "y": 27.4
+            },
+            "end": {
+                "x": 12,
+                "y": 15.4
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_kit_01",
+            "room": "kitchen",
+            "start": {
+                "x": -10,
+                "y": 0
+            },
+            "end": {
+                "x": 0,
+                "y": 0
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_kit_03",
+            "room": "kitchen",
+            "start": {
+                "x": 0,
+                "y": 10
+            },
+            "end": {
+                "x": -10,
+                "y": 10
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_kit_04",
+            "room": "kitchen",
+            "start": {
+                "x": -10,
+                "y": 10
+            },
+            "end": {
+                "x": -10,
+                "y": 0
+            },
+            "height": 11
+        },
+        {
+            "id": "wall_balc_m_01",
+            "room": "balcony_master",
+            "start": {
+                "x": 28,
+                "y": 2
+            },
+            "end": {
+                "x": 32,
+                "y": 2
+            },
+            "height": 4
+        },
+        {
+            "id": "wall_balc_m_02",
+            "room": "balcony_master",
+            "start": {
+                "x": 32,
+                "y": 2
+            },
+            "end": {
+                "x": 32,
+                "y": 10
+            },
+            "height": 4
+        },
+        {
+            "id": "wall_balc_m_03",
+            "room": "balcony_master",
+            "start": {
+                "x": 32,
+                "y": 10
+            },
+            "end": {
+                "x": 28,
+                "y": 10
+            },
+            "height": 4
+        },
+        {
+            "id": "wall_util_01",
+            "room": "utility_balcony",
+            "start": {
+                "x": -14,
+                "y": 2
+            },
+            "end": {
+                "x": -10,
+                "y": 2
+            },
+            "height": 4
+        },
+        {
+            "id": "wall_util_03",
+            "room": "utility_balcony",
+            "start": {
+                "x": -10,
+                "y": 8
+            },
+            "end": {
+                "x": -14,
+                "y": 8
+            },
+            "height": 4
+        }
+    ],
+    "cutouts": [
+        {
+            "id": "door_main_01",
+            "type": "main_door",
+            "room": "drawing_dining",
+            "position": {
+                "x": 5,
+                "y": 0
+            },
+            "width": 4,
+            "height": 8
+        },
+        {
+            "id": "door_master_01",
+            "type": "door",
+            "room": "master_bedroom",
+            "position": {
+                "x": 16,
+                "y": 5
+            },
+            "width": 3,
+            "height": 7
+        },
+        {
+            "id": "door_bed2_01",
+            "type": "door",
+            "room": "bedroom2",
+            "position": {
+                "x": 4,
+                "y": 15.4
+            },
+            "width": 3,
+            "height": 7
+        },
+        {
+            "id": "door_bed3_01",
+            "type": "door",
+            "room": "bedroom3",
+            "position": {
+                "x": 14,
+                "y": 15.4
+            },
+            "width": 3,
+            "height": 7
+        },
+        {
+            "id": "door_kit_01",
+            "type": "door",
+            "room": "kitchen",
+            "position": {
+                "x": 0,
+                "y": 4
+            },
+            "width": 3,
+            "height": 7
+        },
+        {
+            "id": "door_balc_m_01",
+            "type": "balcony_door",
+            "room": "master_bedroom",
+            "position": {
+                "x": 28,
+                "y": 5
+            },
+            "width": 3,
+            "height": 7
+        },
+        {
+            "id": "win_bed2_01",
+            "type": "window",
+            "room": "bedroom2",
+            "position": {
+                "x": 6,
+                "y": 27.4
+            },
+            "width": 4,
+            "height": 4,
+            "sill_height": 3
+        }
+    ],
+    "slabs": [
+        {
+            "id": "slab_floor_total",
+            "type": "floor",
+            "thickness": 0.5,
+            "elevation": 0,
+            "rooms": [
+                "drawing_dining",
+                "master_bedroom",
+                "bedroom2",
+                "bedroom3",
+                "kitchen"
+            ]
+        },
+        {
+            "id": "slab_ceiling_total",
+            "type": "ceiling",
+            "thickness": 0.5,
+            "elevation": 11,
+            "rooms": [
+                "drawing_dining",
+                "master_bedroom",
+                "bedroom2",
+                "bedroom3",
+                "kitchen"
+            ]
+        }
+    ]
+}

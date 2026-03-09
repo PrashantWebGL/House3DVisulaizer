@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { CSG } from 'three-csg-ts';
 import { inject } from '@vercel/analytics';
+import defaultHouseJson from '../assets/Small_houseClean.json';
 
 inject();
 
@@ -791,6 +792,7 @@ class HouseViewer {
     this.initEventListeners();
     this.initModalListeners();
     this.initEstimateListeners();
+    this.loadDataFromJson(defaultHouseJson, 'Small_houseClean.json');
     this.animate();
   }
 
@@ -1375,21 +1377,25 @@ class HouseViewer {
     try {
       const text = await file.text();
       const data = JSON.parse(text);
-
-      if (data.records && Array.isArray(data.records)) {
-        this.renderNewFormat(data as NewJsonData, file.name);
-      } else if (data.walls && Array.isArray(data.walls)) {
-        if (data.walls.length > 0 && data.walls[0].start && data.walls[0].end) {
-          this.renderLineFormat(data, file.name);
-        } else {
-          this.renderOldFormat(data as OldJsonData, file.name);
-        }
-      } else {
-        fileInfo.textContent = 'Error: Unrecognised JSON format.';
-      }
+      this.loadDataFromJson(data, file.name);
     } catch (e) {
       fileInfo.textContent = 'Error: Could not parse JSON file.';
       console.error(e);
+    }
+  }
+
+  private loadDataFromJson(data: any, fileName: string) {
+    const fileInfo = document.querySelector('.file-info') as HTMLElement;
+    if (data.records && Array.isArray(data.records)) {
+      this.renderNewFormat(data as NewJsonData, fileName);
+    } else if (data.walls && Array.isArray(data.walls)) {
+      if (data.walls.length > 0 && data.walls[0].start && data.walls[0].end) {
+        this.renderLineFormat(data, fileName);
+      } else {
+        this.renderOldFormat(data as OldJsonData, fileName);
+      }
+    } else {
+      fileInfo.textContent = 'Error: Unrecognised JSON format.';
     }
   }
 
