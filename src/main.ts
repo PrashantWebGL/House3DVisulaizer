@@ -44,6 +44,33 @@ interface NewJsonData {
   records: NewRecord[];
 }
 
+// ─── Page-format (Plan) JSON ───────────────────────────────────────────────
+interface PlanWallCoordinates {
+  x1: number; y1: number; x2: number; y2: number;
+}
+
+interface PlanWall {
+  geometry?: { coordinates?: PlanWallCoordinates };
+  properties?: { thickness_inches?: number; wall_height?: string | number; category?: string; floor_label?: string };
+  category?: string;
+}
+
+interface PlanEntities {
+  walls?: PlanWall[];
+  windows_and_doors_floor_plans?: any;
+}
+
+interface PlanPage {
+  page_index?: number;
+  entities?: PlanEntities;
+}
+
+interface PlanJson {
+  pages?: PlanPage[];
+  project_metadata?: Record<string, unknown>;
+  project_id?: string | number;
+}
+
 // ─── Wall registry entry ─────────────────────────────────────────────────────
 interface WallEntry {
   pts: [number, number][];
@@ -702,6 +729,76 @@ const FLOOR_ELEVATIONS: Record<string, number> = {
   'SECOND FLOOR': 9.0,
   'default': 0.0,
 };
+
+// ─── Plan helpers ───────────────────────────────────────────────────────────
+function parseFeetInches(raw: unknown, fallback = 9): number {
+  if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+  if (typeof raw !== 'string') return fallback;
+
+  const text = raw.trim();
+  if (!text) return fallback;
+
+  // Extract feet and inches (with optional fractions)
+  const feetMatch = text.match(/(-?\d+)\s*(?:'|ft)/i);
+  const inchMatch = text.match(/(-?[\d\.]+(?:\s*\d+\/\d+)?)\s*(?:"|in)/i);
+
+  let feet = feetMatch ? parseFloat(feetMatch[1]) : 0;
+
+  let inches = 0;
+  if (inchMatch) {
+    const rawIn = inchMatch[1].replace(/\s+/g, '');
+    if (rawIn.includes('/')) {
+      const [whole, frac] = rawIn.split(/(?=\d+\/)/);
+      const wholeIn = whole ? parseFloat(whole) : 0;
+      const [num, den] = (frac || '0/1').split('/').map((v) => parseFloat(v));
+      inches = wholeIn + (den ? num / den : 0);
+    } else {
+      inches = parseFloat(rawIn) || 0;
+    }
+  } else if (!feetMatch && /^-?\d+(\.\d+)?$/.test(text)) {
+    // Plain number → feet
+    feet = parseFloat(text);
+  }
+
+  return feet + inches / 12 || fallback;
+}
+
+function normalizePlanLabel(category?: string): string {
+  if (!category) return 'Wall';
+  const c = category.toLowerCase();
+  if (c.includes('exterior')) return 'Exterior Wall';
+  if (c.includes('interior')) return 'Interior Wall';
+  if (c.includes('perimeter')) return 'Perimeter Wall';
+  if (c.includes('foundation')) return 'Foundation Wall';
+  if (c.includes('knee')) return 'Knee Wall';
+  return 'Wall';
+}
+
+type OpeningBox = { xmin: number; xmax: number; ymin: number; ymax: number };
+
+function toOpeningBox(box: any): OpeningBox | null {
+  if (!box) return null;
+  if (Array.isArray(box) && box.length === 4 && box.every((v) => typeof v === 'number')) {
+    const [xmin, ymin, xmax, ymax] = box;
+    if ([xmin, ymin, xmax, ymax].some((v) => !Number.isFinite(v))) return null;
+    return { xmin, xmax, ymin, ymax };
+  }
+
+  if (Array.isArray(box) && box.length === 4 && Array.isArray(box[0])) {
+    const xs: number[] = [];
+    const ys: number[] = [];
+    box.forEach((pt: any) => {
+      if (Array.isArray(pt) && pt.length >= 2) {
+        xs.push(Number(pt[0]));
+        ys.push(Number(pt[1]));
+      }
+    });
+    if (!xs.length || !ys.length) return null;
+    if (!xs.every(Number.isFinite) || !ys.every(Number.isFinite)) return null;
+    return { xmin: Math.min(...xs), xmax: Math.max(...xs), ymin: Math.min(...ys), ymax: Math.max(...ys) };
+  }
+  return null;
+}
 
 // ─── Categorise a wall's settings.type into a display label ──────────────────
 function categoriseWallType(settings: NewRecord['settings']): string {
@@ -1386,7 +1483,11 @@ class HouseViewer {
 
   private loadDataFromJson(data: any, fileName: string) {
     const fileInfo = document.querySelector('.file-info') as HTMLElement;
-    if (data.records && Array.isArray(data.records)) {
+    const looksLikePlanPages = Array.isArray(data.pages) && data.pages.some((p: any) => p?.entities && ((p.entities.walls && p.entities.walls.length) || p.entities.windows_and_doors_floor_plans));
+
+    if (looksLikePlanPages) {
+      this.renderPlanPages(data as PlanJson, fileName);
+    } else if (data.records && Array.isArray(data.records)) {
       this.renderNewFormat(data as NewJsonData, fileName);
     } else if (data.walls && Array.isArray(data.walls)) {
       if (data.walls.length > 0 && data.walls[0].start && data.walls[0].end) {
@@ -1397,6 +1498,242 @@ class HouseViewer {
     } else {
       fileInfo.textContent = 'Error: Unrecognised JSON format.';
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PLAN PAGE renderer (pages[].entities.walls + windows_and_doors_floor_plans)
+  // ═══════════════════════════════════════════════════════════════════════════
+  private renderPlanPages(data: PlanJson, fileName: string) {
+    this.clearScene();
+
+    const fileInfo = document.querySelector('.file-info') as HTMLElement;
+    const pages = (data.pages || []).filter((p) => p.entities && ((p.entities.walls && p.entities.walls.length) || p.entities?.windows_and_doors_floor_plans));
+    if (!pages.length) {
+      fileInfo.textContent = 'No entities found in plan file.';
+      return;
+    }
+
+    type WallDatum = {
+      x1: number; y1: number; x2: number; y2: number;
+      thicknessIn: number; heightFt: number; label: string;
+    };
+
+    const walls: WallDatum[] = [];
+    const openings: OpeningBox[] = [];
+
+    pages.forEach((page) => {
+      const entities = page.entities || {};
+      (entities.walls || []).forEach((wall, idx) => {
+        const coords = wall.geometry?.coordinates;
+        if (!coords) return;
+        const x1 = Number((coords as any).x1);
+        const y1 = Number((coords as any).y1);
+        const x2 = Number((coords as any).x2);
+        const y2 = Number((coords as any).y2);
+        if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return;
+
+        const thicknessIn = Number(wall.properties?.thickness_inches) || 6;
+        const heightFt = parseFeetInches(wall.properties?.wall_height, 9);
+        const label = normalizePlanLabel(wall.category || wall.properties?.category || wall.properties?.floor_label);
+
+        walls.push({
+          x1,
+          y1,
+          x2,
+          y2,
+          thicknessIn,
+          heightFt,
+          label: label || `Wall ${idx + 1}`,
+        });
+      });
+
+      const boxes = this.extractOpeningBoxes(entities.windows_and_doors_floor_plans);
+      openings.push(...boxes);
+    });
+
+    if (!walls.length) {
+      fileInfo.textContent = 'No walls present in plan file.';
+      return;
+    }
+
+    // Compute bounds for centering
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    walls.forEach((w) => {
+      minX = Math.min(minX, w.x1, w.x2);
+      maxX = Math.max(maxX, w.x1, w.x2);
+      minY = Math.min(minY, w.y1, w.y2);
+      maxY = Math.max(maxY, w.y1, w.y2);
+    });
+    openings.forEach((b) => {
+      if (!Number.isFinite(b.xmin) || !Number.isFinite(b.xmax) || !Number.isFinite(b.ymin) || !Number.isFinite(b.ymax)) return;
+      minX = Math.min(minX, b.xmin, b.xmax);
+      maxX = Math.max(maxX, b.xmin, b.xmax);
+      minY = Math.min(minY, b.ymin, b.ymax);
+      maxY = Math.max(maxY, b.ymin, b.ymax);
+    });
+
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
+
+    if (!Number.isFinite(cx) || !Number.isFinite(cy)) {
+      fileInfo.textContent = 'Invalid geometry in plan file (non-finite coordinates).';
+      return;
+    }
+
+    const wallTypeCounts: Record<string, number> = {};
+    const typeCounts: Record<string, number> = { wall: walls.length };
+
+    type WallSeg = {
+      mesh: THREE.Mesh;
+      a: THREE.Vector3;
+      b: THREE.Vector3;
+      thickness: number;
+      height: number;
+      label: string;
+      rotY: number;
+    };
+
+    const wallSegments: WallSeg[] = [];
+
+    walls.forEach((w, idx) => {
+      const a = new THREE.Vector3((w.x1 - cx) * SCALE, 0, (w.y1 - cy) * SCALE);
+      const b = new THREE.Vector3((w.x2 - cx) * SCALE, 0, (w.y2 - cy) * SCALE);
+
+      const dir = new THREE.Vector3().subVectors(b, a);
+      const length = dir.length();
+      if (!Number.isFinite(length) || length < 0.001) return;
+
+      const thickness = (w.thicknessIn || 6) * SCALE;
+      const height = w.heightFt || 9;
+      if (!Number.isFinite(thickness) || !Number.isFinite(height)) return;
+
+      const geo = new THREE.BoxGeometry(length, height, thickness);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xd9d9d9, metalness: 0.05, roughness: 0.85 });
+      const mesh = new THREE.Mesh(geo, mat);
+
+      const mid = new THREE.Vector3().copy(a).lerp(b, 0.5);
+      mid.y = height / 2;
+      const rotY = -Math.atan2(dir.z, dir.x);
+
+      mesh.position.copy(mid);
+      mesh.rotation.y = rotY;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.updateMatrix();
+
+      this.buildingGroup.add(mesh);
+
+      const label = w.label || `Wall ${idx + 1}`;
+      wallTypeCounts[label] = (wallTypeCounts[label] || 0) + 1;
+
+      const fakeRecord: NewRecord = {
+        materialType: 'wall',
+        settings: { name: label, type: label, height: String(height), floor_level: 'default' },
+        coordinates_real_world: [[w.x1, w.y1], [w.x2, w.y2]],
+        scale_factor_float: SCALE,
+      } as NewRecord;
+
+      this.wallRegistry.set(mesh, {
+        pts: [[a.x, a.z], [b.x, b.z]],
+        cx, cy,
+        height,
+        thickness,
+        length,
+        baseElev: 0,
+        label,
+        wallType: label,
+        record: fakeRecord,
+        originalColor: 0xd9d9d9,
+        worldPos: mid.clone(),
+        worldRotY: rotY,
+      });
+
+      wallSegments.push({ mesh, a, b, thickness, height, label, rotY });
+    });
+
+    const openingHeightDefault = 7; // feet
+
+    if (!wallSegments.length) {
+      this.updateStatsPanel(typeCounts, wallTypeCounts);
+      this.addAutoFloorFromWalls();
+      fileInfo.textContent = `Plan ${fileName} — ${walls.length} walls, ${openings.length} openings`;
+      this.updateLegendForOldFormat();
+      this.frameCamera();
+      this.walkthroughController.syncEnvironment();
+      return;
+    }
+
+    openings.forEach((box) => {
+      const centerX = (box.xmin + box.xmax) / 2;
+      const centerY = (box.ymin + box.ymax) / 2;
+      const width = Math.max(0.1, (box.xmax - box.xmin) * SCALE);
+
+      const center = new THREE.Vector3((centerX - cx) * SCALE, 0, (centerY - cy) * SCALE);
+
+      if (!Number.isFinite(center.x) || !Number.isFinite(center.z) || !Number.isFinite(width)) return;
+
+      let nearest: WallSeg | null = null;
+      let nearestDist = Infinity;
+
+      wallSegments.forEach((seg) => {
+        const ab = new THREE.Vector3().subVectors(seg.b, seg.a);
+        const ap = new THREE.Vector3().subVectors(center, seg.a);
+        const t = Math.max(0, Math.min(1, ap.dot(ab) / Math.max(ab.lengthSq(), 1e-6)));
+        const proj = seg.a.clone().addScaledVector(ab, t);
+        const dist = proj.distanceTo(center);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearest = seg;
+        }
+      });
+
+      if (!nearest) return;
+
+      const nearestWall = nearest as WallSeg;
+
+      const openingHeight = openingHeightDefault;
+      const thickness = nearestWall.thickness + 0.05; // ensure cut fully passes through
+
+      const geom = new THREE.BoxGeometry(width, openingHeight, thickness);
+      const mat = new THREE.MeshStandardMaterial({ color: 0x93c5fd, transparent: true, opacity: 0.35 });
+      const openingMesh = new THREE.Mesh(geom, mat);
+      openingMesh.position.set(center.x, openingHeight / 2, center.z);
+      openingMesh.rotation.y = nearestWall.rotY;
+      openingMesh.updateMatrix();
+
+      // Subtract from nearest wall using CSG while keeping the same mesh reference
+      const wallMesh = nearestWall.mesh;
+      const wallCSG = CSG.fromMesh(wallMesh);
+      const openingCSG = CSG.fromMesh(openingMesh);
+      const result = wallCSG.subtract(openingCSG);
+      const resultMesh = CSG.toMesh(result, wallMesh.matrix, wallMesh.material as THREE.Material);
+
+      wallMesh.geometry.dispose();
+      wallMesh.geometry = resultMesh.geometry;
+      wallMesh.updateMatrix();
+    });
+
+    this.updateStatsPanel(typeCounts, wallTypeCounts);
+    this.addAutoFloorFromWalls();
+
+    fileInfo.textContent = `Plan ${fileName} — ${walls.length} walls, ${openings.length} openings`;
+    this.updateLegendForOldFormat();
+    this.frameCamera();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private extractOpeningBoxes(floorPlan: any): OpeningBox[] {
+    if (!floorPlan) return [];
+    const boxes: OpeningBox[] = [];
+
+    const candidates = floorPlan.boxes || floorPlan.HeadersOnly?.boxes || floorPlan.Boxes || [];
+    if (Array.isArray(candidates)) {
+      candidates.forEach((box: any) => {
+        const parsed = toOpeningBox(box);
+        if (parsed) boxes.push(parsed);
+      });
+    }
+    return boxes;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
