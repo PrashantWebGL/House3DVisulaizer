@@ -58,10 +58,13 @@ interface PlanWall {
 interface PlanEntities {
   walls?: PlanWall[];
   windows_and_doors_floor_plans?: any;
+  roofing?: any;
 }
 
 interface PlanPage {
   page_index?: number;
+  source_file_id?: string;
+  page_number_in_source_file?: number;
   entities?: PlanEntities;
 }
 
@@ -843,6 +846,12 @@ class HouseViewer {
   private readonly maxHistorySize = 20;
   private undoStack: WallEditHistoryEntry[] = [];
   private redoStack: WallEditHistoryEntry[] = [];
+  private sourceGroups = new Map<string, THREE.Mesh[]>();
+  private sourceVisibility = new Map<string, boolean>();
+  private pageGroups = new Map<string, { id: string; meshes: THREE.Mesh[]; roofMeshes: THREE.Mesh[]; sourceId: string; label: string }>();
+  private pageVisibility = new Map<string, boolean>();
+  private pageRoofVisibility = new Map<string, boolean>();
+  private assemblyCollapsed = false;
 
   // ─── Interactive Cutout Placement ───────────────────────────────────────
   private placementMode: 'none' | 'door' | 'window' = 'none';
@@ -889,6 +898,7 @@ class HouseViewer {
     this.initEventListeners();
     this.initModalListeners();
     this.initEstimateListeners();
+    this.initAssemblyPanel();
     this.loadDataFromJson(defaultHouseJson, 'Small_houseClean.json');
     this.animate();
   }
@@ -1144,6 +1154,258 @@ class HouseViewer {
     });
 
     this.recalculateEstimateTotal();
+  }
+
+  private renderAssemblyTree() {
+    const body = document.getElementById('assembly-body') as HTMLElement | null;
+    if (!body) return;
+
+    if (this.sourceGroups.size === 0) {
+      body.innerHTML = '<p class="assembly-empty">Load a plan-format JSON to see sources.</p>';
+      return;
+    }
+
+    body.innerHTML = '';
+    this.sourceGroups.forEach((meshes, sourceId) => {
+      const item = document.createElement('div');
+      item.className = 'assembly-item';
+
+      const row = document.createElement('div');
+      row.className = 'assembly-row';
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.type = 'button';
+      toggleBtn.className = 'assembly-toggle';
+      toggleBtn.dataset.sourceId = sourceId;
+      toggleBtn.textContent = '▾';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.dataset.sourceId = sourceId;
+      checkbox.checked = meshes.every((m) => m.visible !== false);
+
+      const label = document.createElement('span');
+      label.className = 'assembly-label';
+      label.textContent = sourceId;
+
+      const count = document.createElement('span');
+      count.className = 'assembly-count';
+      count.textContent = `${meshes.length} wall${meshes.length === 1 ? '' : 's'}`;
+
+      row.append(toggleBtn, checkbox, label, count);
+
+      const children = document.createElement('div');
+      children.className = 'assembly-children';
+      children.dataset.children = sourceId;
+
+      // Pages under this source
+      const pages = Array.from(this.pageGroups.values()).filter((p) => p.sourceId === sourceId);
+      pages.forEach((page) => {
+        const pageRow = document.createElement('div');
+        pageRow.className = 'assembly-row';
+        pageRow.style.paddingLeft = '0.25rem';
+
+        const pageToggle = document.createElement('button');
+        pageToggle.type = 'button';
+        pageToggle.className = 'assembly-page-toggle';
+        pageToggle.dataset.pageId = page.id;
+        pageToggle.textContent = '▸';
+
+        const pageCheckbox = document.createElement('input');
+        pageCheckbox.type = 'checkbox';
+        pageCheckbox.dataset.pageId = page.id;
+        pageCheckbox.dataset.sourceId = sourceId;
+        const pageMeshes = page.meshes;
+        const pageVis = this.pageVisibility.get(page.id);
+        pageCheckbox.checked = pageVis !== false && pageMeshes.every((m) => m.visible !== false);
+        const roofMeshes = page.roofMeshes || [];
+
+        const pageLabel = document.createElement('span');
+        pageLabel.className = 'assembly-label';
+        pageLabel.textContent = page.label;
+
+        const pageCount = document.createElement('span');
+        pageCount.className = 'assembly-count';
+        const wallText = `${pageMeshes.length} wall${pageMeshes.length === 1 ? '' : 's'}`;
+        const roofText = roofMeshes.length ? `, ${roofMeshes.length} roof edge${roofMeshes.length === 1 ? '' : 's'}` : '';
+        pageCount.textContent = wallText + roofText;
+
+        pageRow.append(pageToggle, pageCheckbox, pageLabel, pageCount);
+        children.appendChild(pageRow);
+
+        // Walls list (collapsed by default)
+        const pageChildren = document.createElement('div');
+        pageChildren.className = 'assembly-page-children';
+        pageChildren.dataset.pageChildren = page.id;
+
+        pageMeshes.forEach((mesh, idx) => {
+          const leaf = document.createElement('div');
+          leaf.className = 'assembly-leaf';
+          const entry = this.wallRegistry.get(mesh);
+          leaf.textContent = entry?.label || `Wall ${idx + 1}`;
+          pageChildren.appendChild(leaf);
+        });
+
+        if (roofMeshes.length) {
+          const roofRow = document.createElement('div');
+          roofRow.className = 'assembly-row';
+          roofRow.style.paddingLeft = '0.35rem';
+
+          const roofCheckbox = document.createElement('input');
+          roofCheckbox.type = 'checkbox';
+          roofCheckbox.dataset.pageId = page.id;
+          roofCheckbox.dataset.sourceId = sourceId;
+          roofCheckbox.dataset.roof = 'true';
+          const roofVis = this.pageRoofVisibility.get(page.id);
+          roofCheckbox.checked = roofVis !== false && roofMeshes.every((m) => m.visible !== false);
+
+          const roofLabel = document.createElement('span');
+          roofLabel.className = 'assembly-label';
+          roofLabel.textContent = 'Roof';
+
+          const roofCount = document.createElement('span');
+          roofCount.className = 'assembly-count';
+          roofCount.textContent = `${roofMeshes.length}`;
+
+          roofRow.append(roofCheckbox, roofLabel, roofCount);
+          pageChildren.appendChild(roofRow);
+        }
+
+        children.appendChild(pageChildren);
+      });
+
+      item.append(row, children);
+      body.appendChild(item);
+    });
+  }
+
+  private registerWallToSource(mesh: THREE.Mesh, sourceId: string, pageId: string, pageLabel: string) {
+    const sourceVisible = this.sourceVisibility.get(sourceId);
+    const pageVisible = this.pageVisibility.get(pageId);
+    if (sourceVisible === false || pageVisible === false) mesh.visible = false;
+
+    const list = this.sourceGroups.get(sourceId) || [];
+    list.push(mesh);
+    this.sourceGroups.set(sourceId, list);
+
+    const pageEntry = this.pageGroups.get(pageId) || { id: pageId, meshes: [], roofMeshes: [], sourceId, label: pageLabel };
+    pageEntry.meshes.push(mesh);
+    this.pageGroups.set(pageId, pageEntry);
+  }
+
+  private registerRoofToSource(mesh: THREE.Mesh, sourceId: string, pageId: string, pageLabel: string) {
+    const sourceVisible = this.sourceVisibility.get(sourceId);
+    const pageVisible = this.pageRoofVisibility.get(pageId);
+    if (sourceVisible === false || pageVisible === false) mesh.visible = false;
+
+    const list = this.sourceGroups.get(sourceId) || [];
+    list.push(mesh);
+    this.sourceGroups.set(sourceId, list);
+
+    const pageEntry = this.pageGroups.get(pageId) || { id: pageId, meshes: [], roofMeshes: [], sourceId, label: pageLabel };
+    pageEntry.roofMeshes.push(mesh);
+    this.pageGroups.set(pageId, pageEntry);
+  }
+
+  private setSourceVisibility(sourceId: string, visible: boolean) {
+    this.sourceVisibility.set(sourceId, visible);
+    const meshes = this.sourceGroups.get(sourceId) || [];
+    meshes.forEach((mesh) => {
+      const pageId = mesh.userData.pageId as string | undefined;
+      const isRoof = mesh.userData.roof === true;
+      const pageVisible = pageId
+        ? (isRoof ? this.pageRoofVisibility.get(pageId) : this.pageVisibility.get(pageId))
+        : undefined;
+      const shouldShow = visible && (pageVisible !== false);
+      mesh.visible = shouldShow;
+    });
+    this.renderAssemblyTree();
+    this.addAutoFloorFromWalls();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private setPageVisibility(pageId: string, visible: boolean) {
+    this.pageVisibility.set(pageId, visible);
+    const page = this.pageGroups.get(pageId);
+    if (!page) return;
+    const sourceVisible = this.sourceVisibility.get(page.sourceId);
+    page.meshes.forEach((mesh) => {
+      const shouldShow = (sourceVisible !== false) && visible;
+      mesh.visible = shouldShow;
+    });
+    page.roofMeshes.forEach((mesh) => {
+      const roofAllowed = this.pageRoofVisibility.get(pageId);
+      const shouldShow = (sourceVisible !== false) && visible && (roofAllowed !== false);
+      mesh.visible = shouldShow;
+    });
+    this.renderAssemblyTree();
+    this.addAutoFloorFromWalls();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private setPageRoofVisibility(pageId: string, visible: boolean) {
+    this.pageRoofVisibility.set(pageId, visible);
+    const page = this.pageGroups.get(pageId);
+    if (!page) return;
+    const sourceVisible = this.sourceVisibility.get(page.sourceId);
+    page.roofMeshes.forEach((mesh) => {
+      const shouldShow = (sourceVisible !== false) && visible;
+      mesh.visible = shouldShow;
+    });
+    this.renderAssemblyTree();
+    this.walkthroughController.syncEnvironment();
+  }
+
+  private initAssemblyPanel() {
+    const collapseBtn = document.getElementById('assembly-collapse-btn') as HTMLButtonElement;
+    const panel = document.getElementById('assembly-panel') as HTMLElement;
+    const body = document.getElementById('assembly-body') as HTMLElement;
+
+    collapseBtn.addEventListener('click', () => {
+      this.assemblyCollapsed = !this.assemblyCollapsed;
+      panel.classList.toggle('assembly-collapsed', this.assemblyCollapsed);
+      collapseBtn.textContent = this.assemblyCollapsed ? 'Show' : 'Hide';
+    });
+
+    body.addEventListener('change', (e) => {
+      const target = e.target as HTMLInputElement;
+      if (target?.type === 'checkbox' && target.dataset.sourceId) {
+        const visible = target.checked;
+        if (target.dataset.pageId && target.dataset.roof === 'true') {
+          this.setPageRoofVisibility(target.dataset.pageId, visible);
+        } else if (target.dataset.pageId) {
+          this.setPageVisibility(target.dataset.pageId, visible);
+        } else {
+          this.setSourceVisibility(target.dataset.sourceId, visible);
+        }
+      }
+    });
+
+    body.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.assembly-toggle') as HTMLElement | null;
+      if (!btn) return;
+      const sourceId = btn.dataset.sourceId;
+      if (!sourceId) return;
+      const child = body.querySelector(`[data-children="${sourceId}"]`) as HTMLElement | null;
+      if (!child) return;
+      const hidden = child.style.display === 'none';
+      child.style.display = hidden ? 'flex' : 'none';
+      btn.textContent = hidden ? '▾' : '▸';
+    });
+
+    body.addEventListener('click', (e) => {
+      const btn = (e.target as HTMLElement).closest('.assembly-page-toggle') as HTMLElement | null;
+      if (!btn) return;
+      const pageId = btn.dataset.pageId;
+      if (!pageId) return;
+      const child = body.querySelector(`[data-page-children="${pageId}"]`) as HTMLElement | null;
+      if (!child) return;
+      const hidden = child.style.display === 'none';
+      child.style.display = hidden ? 'flex' : 'none';
+      btn.textContent = hidden ? '▾' : '▸';
+    });
+
+    this.renderAssemblyTree();
   }
 
   private recalculateEstimateTotal() {
@@ -1483,7 +1745,10 @@ class HouseViewer {
 
   private loadDataFromJson(data: any, fileName: string) {
     const fileInfo = document.querySelector('.file-info') as HTMLElement;
-    const looksLikePlanPages = Array.isArray(data.pages) && data.pages.some((p: any) => p?.entities && ((p.entities.walls && p.entities.walls.length) || p.entities.windows_and_doors_floor_plans));
+    const looksLikePlanPages = Array.isArray(data.pages) && data.pages.some((p: any) => {
+      const e = p?.entities;
+      return e && ((e.walls && e.walls.length) || e.windows_and_doors_floor_plans || e.roofing);
+    });
 
     if (looksLikePlanPages) {
       this.renderPlanPages(data as PlanJson, fileName);
@@ -1507,7 +1772,7 @@ class HouseViewer {
     this.clearScene();
 
     const fileInfo = document.querySelector('.file-info') as HTMLElement;
-    const pages = (data.pages || []).filter((p) => p.entities && ((p.entities.walls && p.entities.walls.length) || p.entities?.windows_and_doors_floor_plans));
+    const pages = (data.pages || []).filter((p) => p.entities && ((p.entities.walls && p.entities.walls.length) || p.entities?.windows_and_doors_floor_plans || p.entities?.roofing));
     if (!pages.length) {
       fileInfo.textContent = 'No entities found in plan file.';
       return;
@@ -1515,14 +1780,19 @@ class HouseViewer {
 
     type WallDatum = {
       x1: number; y1: number; x2: number; y2: number;
-      thicknessIn: number; heightFt: number; label: string;
+      thicknessIn: number; heightFt: number; label: string; sourceId: string; pageId: string; pageLabel: string;
     };
 
     const walls: WallDatum[] = [];
     const openings: OpeningBox[] = [];
+    const roofEdgeQueue: Array<{ edges: any; sourceId: string; pageId: string; pageLabel: string }> = [];
+    let roofEdgeCount = 0;
 
     pages.forEach((page) => {
       const entities = page.entities || {};
+      const sourceId = page.source_file_id || 'Unknown Source';
+      const pageLabel = `Page ${page.page_number_in_source_file ?? page.page_index ?? ''}`.trim();
+      const pageId = `${sourceId}::${page.page_number_in_source_file ?? page.page_index ?? Math.random().toString(36).slice(2)}`;
       (entities.walls || []).forEach((wall, idx) => {
         const coords = wall.geometry?.coordinates;
         if (!coords) return;
@@ -1544,15 +1814,23 @@ class HouseViewer {
           thicknessIn,
           heightFt,
           label: label || `Wall ${idx + 1}`,
+          sourceId,
+          pageId,
+          pageLabel,
         });
       });
 
       const boxes = this.extractOpeningBoxes(entities.windows_and_doors_floor_plans);
       openings.push(...boxes);
+
+      if (entities.roofing?.EdgesOnly) {
+        roofEdgeQueue.push({ edges: entities.roofing.EdgesOnly, sourceId, pageId, pageLabel });
+        roofEdgeCount += Array.isArray(entities.roofing.EdgesOnly.keypoints) ? entities.roofing.EdgesOnly.keypoints.length : 0;
+      }
     });
 
-    if (!walls.length) {
-      fileInfo.textContent = 'No walls present in plan file.';
+    if (!walls.length && !roofEdgeCount) {
+      fileInfo.textContent = 'No walls or roof edges present in plan file.';
       return;
     }
 
@@ -1563,6 +1841,21 @@ class HouseViewer {
       maxX = Math.max(maxX, w.x1, w.x2);
       minY = Math.min(minY, w.y1, w.y2);
       maxY = Math.max(maxY, w.y1, w.y2);
+    });
+    roofEdgeQueue.forEach(({ edges }) => {
+      const kp: any[] = edges?.keypoints || [];
+      kp.forEach((pair) => {
+        if (!Array.isArray(pair) || pair.length < 2) return;
+        const x1 = Number(pair[0]?.[0]);
+        const y1 = Number(pair[0]?.[1]);
+        const x2 = Number(pair[1]?.[0]);
+        const y2 = Number(pair[1]?.[1]);
+        if ([x1, y1, x2, y2].some((v) => !Number.isFinite(v))) return;
+        minX = Math.min(minX, x1, x2);
+        maxX = Math.max(maxX, x1, x2);
+        minY = Math.min(minY, y1, y2);
+        maxY = Math.max(maxY, y1, y2);
+      });
     });
     openings.forEach((b) => {
       if (!Number.isFinite(b.xmin) || !Number.isFinite(b.xmax) || !Number.isFinite(b.ymin) || !Number.isFinite(b.ymax)) return;
@@ -1582,6 +1875,7 @@ class HouseViewer {
 
     const wallTypeCounts: Record<string, number> = {};
     const typeCounts: Record<string, number> = { wall: walls.length };
+    if (roofEdgeCount) typeCounts['roof'] = roofEdgeCount;
 
     type WallSeg = {
       mesh: THREE.Mesh;
@@ -1610,6 +1904,8 @@ class HouseViewer {
       const geo = new THREE.BoxGeometry(length, height, thickness);
       const mat = new THREE.MeshStandardMaterial({ color: 0xd9d9d9, metalness: 0.05, roughness: 0.85 });
       const mesh = new THREE.Mesh(geo, mat);
+      mesh.userData.sourceId = w.sourceId;
+      mesh.userData.pageId = w.pageId;
 
       const mid = new THREE.Vector3().copy(a).lerp(b, 0.5);
       mid.y = height / 2;
@@ -1649,6 +1945,12 @@ class HouseViewer {
       });
 
       wallSegments.push({ mesh, a, b, thickness, height, label, rotY });
+      this.registerWallToSource(mesh, w.sourceId, w.pageId, w.pageLabel);
+    });
+
+    // Render roof edges (if present) for each page/source
+    roofEdgeQueue.forEach((task) => {
+      this.renderRoofEdges(task.edges, cx, cy, task.sourceId, task.pageId, task.pageLabel);
     });
 
     const openingHeightDefault = 7; // feet
@@ -1715,6 +2017,7 @@ class HouseViewer {
 
     this.updateStatsPanel(typeCounts, wallTypeCounts);
     this.addAutoFloorFromWalls();
+    this.renderAssemblyTree();
 
     fileInfo.textContent = `Plan ${fileName} — ${walls.length} walls, ${openings.length} openings`;
     this.updateLegendForOldFormat();
@@ -1915,6 +2218,50 @@ class HouseViewer {
     this.applyWallTexture(mesh, entry, typeof settings.texture === 'string' ? settings.texture : 'none');
 
     return mesh;
+  }
+
+  private renderRoofEdges(edges: any, cx: number, cy: number, sourceId: string, pageId: string, pageLabel: string) {
+    if (!edges || !Array.isArray(edges.keypoints)) return;
+
+    const keypoints: any[] = edges.keypoints || [];
+    const pitchs: any[] = Array.isArray(edges.pitchs) ? edges.pitchs : [];
+    const classCandidates: any[] = Array.isArray(edges.class_ids) ? edges.class_ids : [];
+    const classList: any[] = classCandidates.find((arr) => Array.isArray(arr) && arr.length === keypoints.length) || [];
+
+    const material = new THREE.LineBasicMaterial({ color: 0xf97316, linewidth: 2, transparent: true, opacity: 0.9 });
+    const baseHeight = 9; // feet
+
+    keypoints.forEach((pair, idx) => {
+      if (!Array.isArray(pair) || pair.length < 2) return;
+      const p1 = pair[0];
+      const p2 = pair[1];
+      const x1 = Number(p1?.[0]);
+      const y1 = Number(p1?.[1]);
+      const x2 = Number(p2?.[0]);
+      const y2 = Number(p2?.[1]);
+      if (!Number.isFinite(x1) || !Number.isFinite(y1) || !Number.isFinite(x2) || !Number.isFinite(y2)) return;
+
+      const v1 = new THREE.Vector3((x1 - cx) * SCALE, baseHeight, (y1 - cy) * SCALE);
+      const v2 = new THREE.Vector3((x2 - cx) * SCALE, baseHeight, (y2 - cy) * SCALE);
+
+      const run = new THREE.Vector2(v2.x - v1.x, v2.z - v1.z).length();
+      const pitchCandidate = pitchs[idx];
+      let pitch = 9;
+      if (Array.isArray(pitchCandidate) && pitchCandidate.length) pitch = parseFloat(pitchCandidate[0]) || 9;
+      else if (typeof pitchCandidate === 'string' || typeof pitchCandidate === 'number') pitch = parseFloat(pitchCandidate as any) || 9;
+
+      const deltaH = run * (pitch / 12);
+      const classId = Array.isArray(classList) ? classList[idx] : 0;
+      const isHorizontal = classId === 1 || classId === 4;
+
+      if (!isHorizontal) v2.y = baseHeight + deltaH;
+
+      const geom = new THREE.BufferGeometry().setFromPoints([v1, v2]);
+      const line = new THREE.Line(geom, material.clone());
+      line.userData = { roof: true, sourceId, pageId };
+      this.buildingGroup.add(line);
+      this.registerRoofToSource(line as unknown as THREE.Mesh, sourceId, pageId, pageLabel);
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2567,7 +2914,7 @@ class HouseViewer {
 
   // ─── Raycasting ───────────────────────────────────────────────────────────
   private getWallMeshes(): THREE.Mesh[] {
-    return Array.from(this.wallRegistry.keys());
+    return Array.from(this.wallRegistry.keys()).filter((mesh) => mesh.visible !== false);
   }
 
   private getFloorMeshes(): THREE.Mesh[] {
@@ -2891,6 +3238,11 @@ class HouseViewer {
     this.selectedWall = null;
     this.undoStack = [];
     this.redoStack = [];
+    this.sourceGroups.clear();
+    this.pageGroups.clear();
+    this.sourceVisibility.clear();
+    this.pageVisibility.clear();
+    this.pageRoofVisibility.clear();
     this.walkthroughController.stop();
     this.walkthroughController.clearCustomStops();
     this.closeEstimateModal();
@@ -2907,6 +3259,8 @@ class HouseViewer {
       }
       this.buildingGroup.remove(child);
     }
+
+    this.renderAssemblyTree();
   }
 
   private addAutoFloorFromWalls() {
