@@ -228,6 +228,122 @@ header p {
   color: var(--text-muted);
 }
 
+.assembly-panel {
+  position: absolute;
+  right: 2rem;
+  top: 6rem;
+  width: 320px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  padding: 1rem 1.1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.assembly-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.assembly-title {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.assembly-subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.assembly-collapse-btn {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.assembly-body {
+  max-height: 360px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.assembly-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--glass-border);
+  border-radius: 0.9rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.assembly-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.assembly-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 1.2rem;
+}
+
+.assembly-page-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  width: 1.1rem;
+}
+
+.assembly-label {
+  flex: 1;
+  font-size: 0.93rem;
+}
+
+.assembly-count {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.assembly-children {
+  margin-top: 0.5rem;
+  padding-left: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.assembly-page-children {
+  margin-left: 1.4rem;
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.assembly-leaf {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.assembly-empty {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.assembly-collapsed .assembly-body {
+  display: none;
+}
+
 .color {
   width: 12px;
   height: 12px;
