@@ -1,0 +1,1904 @@
+{
+  "pages": [
+    {
+      "page_id": 1,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 0,
+                "y1": 0,
+                "x2": 411,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 411,
+                "y1": 0,
+                "x2": 411,
+                "y2": 411
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 411,
+                "y1": 411,
+                "x2": 0,
+                "y2": 411
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 0,
+                "y1": 411,
+                "x2": 0,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 205,
+                "y1": 0,
+                "x2": 205,
+                "y2": 411
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 532,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 0,
+                "y": 205.5,
+                "z": 532
+              },
+              "end": {
+                "x": 411,
+                "y": 205.5,
+                "z": 532
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 0,
+                  "y": 0,
+                  "z": 300
+                },
+                "end": {
+                  "x": 411,
+                  "y": 0,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 0,
+                  "y": 411,
+                  "z": 300
+                },
+                "end": {
+                  "x": 411,
+                  "y": 411,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 0,
+                    "y": 205.5,
+                    "z": 532
+                  },
+                  {
+                    "x": 411,
+                    "y": 205.5,
+                    "z": 532
+                  },
+                  {
+                    "x": 411,
+                    "y": 0,
+                    "z": 300
+                  },
+                  {
+                    "x": 0,
+                    "y": 0,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 0,
+                    "y": 205.5,
+                    "z": 532
+                  },
+                  {
+                    "x": 411,
+                    "y": 205.5,
+                    "z": 532
+                  },
+                  {
+                    "x": 411,
+                    "y": 411,
+                    "z": 300
+                  },
+                  {
+                    "x": 0,
+                    "y": 411,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 2,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2000,
+                "y1": 0,
+                "x2": 2348,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2348,
+                "y1": 0,
+                "x2": 2348,
+                "y2": 471
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2348,
+                "y1": 471,
+                "x2": 2000,
+                "y2": 471
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2000,
+                "y1": 471,
+                "x2": 2000,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2174,
+                "y1": 0,
+                "x2": 2174,
+                "y2": 471
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 471,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 2000,
+                "y": 235.5,
+                "z": 471
+              },
+              "end": {
+                "x": 2348,
+                "y": 235.5,
+                "z": 471
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 2000,
+                  "y": 0,
+                  "z": 300
+                },
+                "end": {
+                  "x": 2348,
+                  "y": 0,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 2000,
+                  "y": 471,
+                  "z": 300
+                },
+                "end": {
+                  "x": 2348,
+                  "y": 471,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 2000,
+                    "y": 235.5,
+                    "z": 471
+                  },
+                  {
+                    "x": 2348,
+                    "y": 235.5,
+                    "z": 471
+                  },
+                  {
+                    "x": 2348,
+                    "y": 0,
+                    "z": 300
+                  },
+                  {
+                    "x": 2000,
+                    "y": 0,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 2000,
+                    "y": 235.5,
+                    "z": 471
+                  },
+                  {
+                    "x": 2348,
+                    "y": 235.5,
+                    "z": 471
+                  },
+                  {
+                    "x": 2348,
+                    "y": 471,
+                    "z": 300
+                  },
+                  {
+                    "x": 2000,
+                    "y": 471,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 3,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4000,
+                "y1": 0,
+                "x2": 4379,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4379,
+                "y1": 0,
+                "x2": 4379,
+                "y2": 314
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4379,
+                "y1": 314,
+                "x2": 4000,
+                "y2": 314
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4000,
+                "y1": 314,
+                "x2": 4000,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4189,
+                "y1": 0,
+                "x2": 4189,
+                "y2": 314
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 527,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 4000,
+                "y": 157.0,
+                "z": 527
+              },
+              "end": {
+                "x": 4379,
+                "y": 157.0,
+                "z": 527
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 4000,
+                  "y": 0,
+                  "z": 300
+                },
+                "end": {
+                  "x": 4379,
+                  "y": 0,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 4000,
+                  "y": 314,
+                  "z": 300
+                },
+                "end": {
+                  "x": 4379,
+                  "y": 314,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 4000,
+                    "y": 157.0,
+                    "z": 527
+                  },
+                  {
+                    "x": 4379,
+                    "y": 157.0,
+                    "z": 527
+                  },
+                  {
+                    "x": 4379,
+                    "y": 0,
+                    "z": 300
+                  },
+                  {
+                    "x": 4000,
+                    "y": 0,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 4000,
+                    "y": 157.0,
+                    "z": 527
+                  },
+                  {
+                    "x": 4379,
+                    "y": 157.0,
+                    "z": 527
+                  },
+                  {
+                    "x": 4379,
+                    "y": 314,
+                    "z": 300
+                  },
+                  {
+                    "x": 4000,
+                    "y": 314,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 4,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6000,
+                "y1": 0,
+                "x2": 6594,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6594,
+                "y1": 0,
+                "x2": 6594,
+                "y2": 590
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6594,
+                "y1": 590,
+                "x2": 6000,
+                "y2": 590
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6000,
+                "y1": 590,
+                "x2": 6000,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6297,
+                "y1": 0,
+                "x2": 6297,
+                "y2": 590
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 468,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 6000,
+                "y": 295.0,
+                "z": 468
+              },
+              "end": {
+                "x": 6594,
+                "y": 295.0,
+                "z": 468
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 6000,
+                  "y": 0,
+                  "z": 300
+                },
+                "end": {
+                  "x": 6594,
+                  "y": 0,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 6000,
+                  "y": 590,
+                  "z": 300
+                },
+                "end": {
+                  "x": 6594,
+                  "y": 590,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 6000,
+                    "y": 295.0,
+                    "z": 468
+                  },
+                  {
+                    "x": 6594,
+                    "y": 295.0,
+                    "z": 468
+                  },
+                  {
+                    "x": 6594,
+                    "y": 0,
+                    "z": 300
+                  },
+                  {
+                    "x": 6000,
+                    "y": 0,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 6000,
+                    "y": 295.0,
+                    "z": 468
+                  },
+                  {
+                    "x": 6594,
+                    "y": 295.0,
+                    "z": 468
+                  },
+                  {
+                    "x": 6594,
+                    "y": 590,
+                    "z": 300
+                  },
+                  {
+                    "x": 6000,
+                    "y": 590,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 5,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8000,
+                "y1": 0,
+                "x2": 8628,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8628,
+                "y1": 0,
+                "x2": 8628,
+                "y2": 258
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8628,
+                "y1": 258,
+                "x2": 8000,
+                "y2": 258
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8000,
+                "y1": 258,
+                "x2": 8000,
+                "y2": 0
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8314,
+                "y1": 0,
+                "x2": 8314,
+                "y2": 258
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 580,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 8000,
+                "y": 129.0,
+                "z": 580
+              },
+              "end": {
+                "x": 8628,
+                "y": 129.0,
+                "z": 580
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 8000,
+                  "y": 0,
+                  "z": 300
+                },
+                "end": {
+                  "x": 8628,
+                  "y": 0,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 8000,
+                  "y": 258,
+                  "z": 300
+                },
+                "end": {
+                  "x": 8628,
+                  "y": 258,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 8000,
+                    "y": 129.0,
+                    "z": 580
+                  },
+                  {
+                    "x": 8628,
+                    "y": 129.0,
+                    "z": 580
+                  },
+                  {
+                    "x": 8628,
+                    "y": 0,
+                    "z": 300
+                  },
+                  {
+                    "x": 8000,
+                    "y": 0,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 8000,
+                    "y": 129.0,
+                    "z": 580
+                  },
+                  {
+                    "x": 8628,
+                    "y": 129.0,
+                    "z": 580
+                  },
+                  {
+                    "x": 8628,
+                    "y": 258,
+                    "z": 300
+                  },
+                  {
+                    "x": 8000,
+                    "y": 258,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 6,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 0,
+                "y1": 2000,
+                "x2": 459,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 459,
+                "y1": 2000,
+                "x2": 459,
+                "y2": 2358
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 459,
+                "y1": 2358,
+                "x2": 0,
+                "y2": 2358
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 0,
+                "y1": 2358,
+                "x2": 0,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 229,
+                "y1": 2000,
+                "x2": 229,
+                "y2": 2358
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 467,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 0,
+                "y": 2179.0,
+                "z": 467
+              },
+              "end": {
+                "x": 459,
+                "y": 2179.0,
+                "z": 467
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 0,
+                  "y": 2000,
+                  "z": 300
+                },
+                "end": {
+                  "x": 459,
+                  "y": 2000,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 0,
+                  "y": 2358,
+                  "z": 300
+                },
+                "end": {
+                  "x": 459,
+                  "y": 2358,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 0,
+                    "y": 2179.0,
+                    "z": 467
+                  },
+                  {
+                    "x": 459,
+                    "y": 2179.0,
+                    "z": 467
+                  },
+                  {
+                    "x": 459,
+                    "y": 2000,
+                    "z": 300
+                  },
+                  {
+                    "x": 0,
+                    "y": 2000,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 0,
+                    "y": 2179.0,
+                    "z": 467
+                  },
+                  {
+                    "x": 459,
+                    "y": 2179.0,
+                    "z": 467
+                  },
+                  {
+                    "x": 459,
+                    "y": 2358,
+                    "z": 300
+                  },
+                  {
+                    "x": 0,
+                    "y": 2358,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 7,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2000,
+                "y1": 2000,
+                "x2": 2507,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2507,
+                "y1": 2000,
+                "x2": 2507,
+                "y2": 2386
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2507,
+                "y1": 2386,
+                "x2": 2000,
+                "y2": 2386
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2000,
+                "y1": 2386,
+                "x2": 2000,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 2253,
+                "y1": 2000,
+                "x2": 2253,
+                "y2": 2386
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 565,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 2000,
+                "y": 2193.0,
+                "z": 565
+              },
+              "end": {
+                "x": 2507,
+                "y": 2193.0,
+                "z": 565
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 2000,
+                  "y": 2000,
+                  "z": 300
+                },
+                "end": {
+                  "x": 2507,
+                  "y": 2000,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 2000,
+                  "y": 2386,
+                  "z": 300
+                },
+                "end": {
+                  "x": 2507,
+                  "y": 2386,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 2000,
+                    "y": 2193.0,
+                    "z": 565
+                  },
+                  {
+                    "x": 2507,
+                    "y": 2193.0,
+                    "z": 565
+                  },
+                  {
+                    "x": 2507,
+                    "y": 2000,
+                    "z": 300
+                  },
+                  {
+                    "x": 2000,
+                    "y": 2000,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 2000,
+                    "y": 2193.0,
+                    "z": 565
+                  },
+                  {
+                    "x": 2507,
+                    "y": 2193.0,
+                    "z": 565
+                  },
+                  {
+                    "x": 2507,
+                    "y": 2386,
+                    "z": 300
+                  },
+                  {
+                    "x": 2000,
+                    "y": 2386,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 8,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4000,
+                "y1": 2000,
+                "x2": 4438,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4438,
+                "y1": 2000,
+                "x2": 4438,
+                "y2": 2528
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4438,
+                "y1": 2528,
+                "x2": 4000,
+                "y2": 2528
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4000,
+                "y1": 2528,
+                "x2": 4000,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 4219,
+                "y1": 2000,
+                "x2": 4219,
+                "y2": 2528
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 570,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 4000,
+                "y": 2264.0,
+                "z": 570
+              },
+              "end": {
+                "x": 4438,
+                "y": 2264.0,
+                "z": 570
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 4000,
+                  "y": 2000,
+                  "z": 300
+                },
+                "end": {
+                  "x": 4438,
+                  "y": 2000,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 4000,
+                  "y": 2528,
+                  "z": 300
+                },
+                "end": {
+                  "x": 4438,
+                  "y": 2528,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 4000,
+                    "y": 2264.0,
+                    "z": 570
+                  },
+                  {
+                    "x": 4438,
+                    "y": 2264.0,
+                    "z": 570
+                  },
+                  {
+                    "x": 4438,
+                    "y": 2000,
+                    "z": 300
+                  },
+                  {
+                    "x": 4000,
+                    "y": 2000,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 4000,
+                    "y": 2264.0,
+                    "z": 570
+                  },
+                  {
+                    "x": 4438,
+                    "y": 2264.0,
+                    "z": 570
+                  },
+                  {
+                    "x": 4438,
+                    "y": 2528,
+                    "z": 300
+                  },
+                  {
+                    "x": 4000,
+                    "y": 2528,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 9,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6000,
+                "y1": 2000,
+                "x2": 6709,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6709,
+                "y1": 2000,
+                "x2": 6709,
+                "y2": 2318
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6709,
+                "y1": 2318,
+                "x2": 6000,
+                "y2": 2318
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6000,
+                "y1": 2318,
+                "x2": 6000,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 6354,
+                "y1": 2000,
+                "x2": 6354,
+                "y2": 2318
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 555,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 6000,
+                "y": 2159.0,
+                "z": 555
+              },
+              "end": {
+                "x": 6709,
+                "y": 2159.0,
+                "z": 555
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 6000,
+                  "y": 2000,
+                  "z": 300
+                },
+                "end": {
+                  "x": 6709,
+                  "y": 2000,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 6000,
+                  "y": 2318,
+                  "z": 300
+                },
+                "end": {
+                  "x": 6709,
+                  "y": 2318,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 6000,
+                    "y": 2159.0,
+                    "z": 555
+                  },
+                  {
+                    "x": 6709,
+                    "y": 2159.0,
+                    "z": 555
+                  },
+                  {
+                    "x": 6709,
+                    "y": 2000,
+                    "z": 300
+                  },
+                  {
+                    "x": 6000,
+                    "y": 2000,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 6000,
+                    "y": 2159.0,
+                    "z": 555
+                  },
+                  {
+                    "x": 6709,
+                    "y": 2159.0,
+                    "z": 555
+                  },
+                  {
+                    "x": 6709,
+                    "y": 2318,
+                    "z": 300
+                  },
+                  {
+                    "x": 6000,
+                    "y": 2318,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "page_id": 10,
+      "page_class": "FLOOR",
+      "entities": {
+        "walls": [
+          {
+            "wall_id": 1,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8000,
+                "y1": 2000,
+                "x2": 8583,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 2,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8583,
+                "y1": 2000,
+                "x2": 8583,
+                "y2": 2419
+              }
+            }
+          },
+          {
+            "wall_id": 3,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8583,
+                "y1": 2419,
+                "x2": 8000,
+                "y2": 2419
+              }
+            }
+          },
+          {
+            "wall_id": 4,
+            "category": "perimeter_wall",
+            "properties": {
+              "thickness_inches": 8.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8000,
+                "y1": 2419,
+                "x2": 8000,
+                "y2": 2000
+              }
+            }
+          },
+          {
+            "wall_id": 5,
+            "category": "interior_wall",
+            "properties": {
+              "thickness_inches": 6.0,
+              "wall_height": "25'-0\""
+            },
+            "geometry": {
+              "coordinates": {
+                "x1": 8291,
+                "y1": 2000,
+                "x2": 8291,
+                "y2": 2419
+              }
+            }
+          }
+        ],
+        "roofing": {
+          "roof_type": "gable",
+          "global_properties": {
+            "eave_height": 300,
+            "ridge_height": 562,
+            "default_slope_degrees": 30,
+            "thickness": 20
+          },
+          "primary_roof": {
+            "type": "gable",
+            "ridge_line": {
+              "start": {
+                "x": 8000,
+                "y": 2209.5,
+                "z": 562
+              },
+              "end": {
+                "x": 8583,
+                "y": 2209.5,
+                "z": 562
+              }
+            },
+            "eaves": [
+              {
+                "start": {
+                  "x": 8000,
+                  "y": 2000,
+                  "z": 300
+                },
+                "end": {
+                  "x": 8583,
+                  "y": 2000,
+                  "z": 300
+                }
+              },
+              {
+                "start": {
+                  "x": 8000,
+                  "y": 2419,
+                  "z": 300
+                },
+                "end": {
+                  "x": 8583,
+                  "y": 2419,
+                  "z": 300
+                }
+              }
+            ],
+            "roof_planes": [
+              {
+                "id": "plane_1",
+                "boundary": [
+                  {
+                    "x": 8000,
+                    "y": 2209.5,
+                    "z": 562
+                  },
+                  {
+                    "x": 8583,
+                    "y": 2209.5,
+                    "z": 562
+                  },
+                  {
+                    "x": 8583,
+                    "y": 2000,
+                    "z": 300
+                  },
+                  {
+                    "x": 8000,
+                    "y": 2000,
+                    "z": 300
+                  }
+                ]
+              },
+              {
+                "id": "plane_2",
+                "boundary": [
+                  {
+                    "x": 8000,
+                    "y": 2209.5,
+                    "z": 562
+                  },
+                  {
+                    "x": 8583,
+                    "y": 2209.5,
+                    "z": 562
+                  },
+                  {
+                    "x": 8583,
+                    "y": 2419,
+                    "z": 300
+                  },
+                  {
+                    "x": 8000,
+                    "y": 2419,
+                    "z": 300
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

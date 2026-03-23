@@ -10,7 +10,7 @@
             "category": "perimeter_wall",
             "properties": {
               "thickness_inches": 8.0,
-              "wall_height": "10'-0\""
+              "wall_height": "250'-0\""
             },
             "geometry": {
               "coordinates": {
@@ -26,7 +26,7 @@
             "category": "perimeter_wall",
             "properties": {
               "thickness_inches": 8.0,
-              "wall_height": "10'-0\""
+              "wall_height": "250'-0\""
             },
             "geometry": {
               "coordinates": {
@@ -42,7 +42,7 @@
             "category": "perimeter_wall",
             "properties": {
               "thickness_inches": 8.0,
-              "wall_height": "10'-0\""
+              "wall_height": "250'-0\""
             },
             "geometry": {
               "coordinates": {
@@ -58,7 +58,7 @@
             "category": "perimeter_wall",
             "properties": {
               "thickness_inches": 8.0,
-              "wall_height": "10'-0\""
+              "wall_height": "250'-0\""
             },
             "geometry": {
               "coordinates": {
@@ -74,7 +74,7 @@
             "category": "interior_wall",
             "properties": {
               "thickness_inches": 6.0,
-              "wall_height": "10'-0\""
+              "wall_height": "250'-0\""
             },
             "geometry": {
               "coordinates": {

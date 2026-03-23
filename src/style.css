@@ -378,6 +378,10 @@ header p {
   width: 100%;
 }
 
+#export-glb-btn {
+  margin-top: 0.5rem;
+}
+
 .stats-scroll {
   height: calc(225px - 2.4rem);
   overflow-y: auto;

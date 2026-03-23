@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PointerLockControls } from 'three/examples/jsm/controls/PointerLockControls.js';
 import { CSG } from 'three-csg-ts';
+import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { inject } from '@vercel/analytics';
 import defaultHouseJson from '../assets/Small_houseClean.json';
 
@@ -899,6 +900,7 @@ class HouseViewer {
     this.initModalListeners();
     this.initEstimateListeners();
     this.initAssemblyPanel();
+    this.initExportListeners();
     this.loadDataFromJson(defaultHouseJson, 'Small_houseClean.json');
     this.animate();
   }
@@ -1156,6 +1158,12 @@ class HouseViewer {
     this.recalculateEstimateTotal();
   }
 
+  private initExportListeners() {
+    const btn = document.getElementById('export-glb-btn') as HTMLButtonElement | null;
+    if (!btn) return;
+    btn.addEventListener('click', () => this.exportGlb());
+  }
+
   private renderAssemblyTree() {
     const body = document.getElementById('assembly-body') as HTMLElement | null;
     if (!body) return;
@@ -1277,6 +1285,20 @@ class HouseViewer {
       item.append(row, children);
       body.appendChild(item);
     });
+  }
+
+  private exportGlb() {
+    const exporter = new GLTFExporter();
+    exporter.parse(this.buildingGroup, (result) => {
+      const arrayBuffer = result as ArrayBuffer;
+      const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'house.glb';
+      a.click();
+      URL.revokeObjectURL(url);
+    }, (err) => console.error(err), { binary: true });
   }
 
   private registerWallToSource(mesh: THREE.Mesh, sourceId: string, pageId: string, pageLabel: string) {
@@ -1786,7 +1808,9 @@ class HouseViewer {
     const walls: WallDatum[] = [];
     const openings: OpeningBox[] = [];
     const roofEdgeQueue: Array<{ edges: any; sourceId: string; pageId: string; pageLabel: string }> = [];
+    const roofObjQueue: Array<{ roof: any; sourceId: string; pageId: string; pageLabel: string }> = [];
     let roofEdgeCount = 0;
+    let roofPlaneCount = 0;
 
     pages.forEach((page) => {
       const entities = page.entities || {};
@@ -1827,6 +1851,11 @@ class HouseViewer {
         roofEdgeQueue.push({ edges: entities.roofing.EdgesOnly, sourceId, pageId, pageLabel });
         roofEdgeCount += Array.isArray(entities.roofing.EdgesOnly.keypoints) ? entities.roofing.EdgesOnly.keypoints.length : 0;
       }
+      if (entities.roofing) {
+        roofObjQueue.push({ roof: entities.roofing, sourceId, pageId, pageLabel });
+        roofPlaneCount += Array.isArray(entities.roofing.primary_roof?.roof_planes) ? entities.roofing.primary_roof.roof_planes.length : 0;
+        roofPlaneCount += Array.isArray(entities.roofing.cross_roof?.roof_planes) ? entities.roofing.cross_roof.roof_planes.length : 0;
+      }
     });
 
     if (!walls.length && !roofEdgeCount) {
@@ -1836,12 +1865,18 @@ class HouseViewer {
 
     // Compute bounds for centering
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    const extendBounds = (x: number, y: number) => {
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+      minY = Math.min(minY, y);
+      maxY = Math.max(maxY, y);
+    };
+
     walls.forEach((w) => {
-      minX = Math.min(minX, w.x1, w.x2);
-      maxX = Math.max(maxX, w.x1, w.x2);
-      minY = Math.min(minY, w.y1, w.y2);
-      maxY = Math.max(maxY, w.y1, w.y2);
+      extendBounds(w.x1, w.y1);
+      extendBounds(w.x2, w.y2);
     });
+
     roofEdgeQueue.forEach(({ edges }) => {
       const kp: any[] = edges?.keypoints || [];
       kp.forEach((pair) => {
@@ -1851,10 +1886,44 @@ class HouseViewer {
         const x2 = Number(pair[1]?.[0]);
         const y2 = Number(pair[1]?.[1]);
         if ([x1, y1, x2, y2].some((v) => !Number.isFinite(v))) return;
-        minX = Math.min(minX, x1, x2);
-        maxX = Math.max(maxX, x1, x2);
-        minY = Math.min(minY, y1, y2);
-        maxY = Math.max(maxY, y1, y2);
+        extendBounds(x1, y1);
+        extendBounds(x2, y2);
+      });
+    });
+
+    roofObjQueue.forEach(({ roof }) => {
+      const takePt = (p: any) => {
+        if (!p) return;
+        const x = Number(p.x ?? p[0]);
+        const y = Number(p.y ?? p[1]);
+        if (Number.isFinite(x) && Number.isFinite(y)) extendBounds(x, y);
+      };
+      const collectBoundary = (boundary: any[]) => {
+        if (!Array.isArray(boundary)) return;
+        boundary.forEach(takePt);
+      };
+
+      const primary = roof.primary_roof;
+      const cross = roof.cross_roof;
+      [primary, cross].forEach((group) => {
+        if (!group) return;
+        if (Array.isArray(group.roof_planes)) group.roof_planes.forEach((pl: any) => collectBoundary(pl?.boundary));
+        if (Array.isArray(group.eaves)) group.eaves.forEach((ev: any) => {
+          takePt(ev?.start ?? ev?.[0]);
+          takePt(ev?.end ?? ev?.[1]);
+        });
+        if (group.ridge_line) {
+          if (Array.isArray(group.ridge_line)) group.ridge_line.forEach(takePt);
+          else { takePt(group.ridge_line.start); takePt(group.ridge_line.end); }
+        }
+        if (Array.isArray(group.valleys)) group.valleys.forEach((vl: any) => { takePt(vl?.start ?? vl?.[0]); takePt(vl?.end ?? vl?.[1]); });
+        if (Array.isArray(group.gable_ends)) group.gable_ends.forEach((g: any) => {
+          if (g?.wall_line) {
+            takePt({ x: g.wall_line.x1, y: g.wall_line.y1 });
+            takePt({ x: g.wall_line.x2, y: g.wall_line.y2 });
+          }
+          takePt(g?.peak);
+        });
       });
     });
     openings.forEach((b) => {
@@ -1875,7 +1944,8 @@ class HouseViewer {
 
     const wallTypeCounts: Record<string, number> = {};
     const typeCounts: Record<string, number> = { wall: walls.length };
-    if (roofEdgeCount) typeCounts['roof'] = roofEdgeCount;
+    const totalRoof = roofEdgeCount + roofPlaneCount;
+    if (totalRoof) typeCounts['roof'] = totalRoof;
 
     type WallSeg = {
       mesh: THREE.Mesh;
@@ -1951,6 +2021,10 @@ class HouseViewer {
     // Render roof edges (if present) for each page/source
     roofEdgeQueue.forEach((task) => {
       this.renderRoofEdges(task.edges, cx, cy, task.sourceId, task.pageId, task.pageLabel);
+      this.renderRoofing(task.edges, cx, cy, task.sourceId, task.pageId, task.pageLabel);
+    });
+    roofObjQueue.forEach((task) => {
+      this.renderRoofing(task.roof, cx, cy, task.sourceId, task.pageId, task.pageLabel);
     });
 
     const openingHeightDefault = 7; // feet
@@ -2218,6 +2292,153 @@ class HouseViewer {
     this.applyWallTexture(mesh, entry, typeof settings.texture === 'string' ? settings.texture : 'none');
 
     return mesh;
+  }
+
+  // ─── Roof (plan-format, boundary-defined) ───────────────────────────────
+  private renderRoofing(roofing: any, cx: number, cy: number, sourceId: string, pageId: string, pageLabel: string) {
+    if (!roofing) return;
+
+    const global = roofing.global_properties || {};
+    const eaveHeight = Number(global.eave_height ?? 9);
+    const ridgeHeight = Number(global.ridge_height ?? eaveHeight + 4);
+    // defaults available if we need to procedurally generate planes
+    const defaultSlopeDeg = Number(global.default_slope_degrees ?? 30);
+    const roofThickness = Number(global.thickness ?? 0.5);
+    void defaultSlopeDeg; void roofThickness;
+
+    const material = new THREE.MeshStandardMaterial({ color: 0xeb5f0c, metalness: 0.15, roughness: 0.65, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+    const lineMat = new THREE.LineBasicMaterial({ color: 0xf97316, linewidth: 2, transparent: true, opacity: 0.95 });
+
+    const toV3 = (p: any): THREE.Vector3 | null => {
+      if (!p) return null;
+      const x = Number(Array.isArray(p) ? p[0] : p.x ?? p.x1 ?? p.start?.x ?? p.end?.x);
+      const y = Number(Array.isArray(p) ? p[1] : p.y ?? p.y1 ?? p.start?.y ?? p.end?.y);
+      const z = Number(Array.isArray(p) ? p[2] : p.z ?? p.z1 ?? p.start?.z ?? p.end?.z);
+      if (![x, y, z].every(Number.isFinite)) return null;
+      return new THREE.Vector3((x - cx) * SCALE, z * SCALE, (y - cy) * SCALE);
+    };
+
+    const addLine = (a: THREE.Vector3, b: THREE.Vector3) => {
+      const geom = new THREE.BufferGeometry().setFromPoints([a, b]);
+      const line = new THREE.Line(geom, lineMat.clone());
+      line.userData = { roof: true, sourceId, pageId };
+      this.buildingGroup.add(line);
+      this.registerRoofToSource(line as unknown as THREE.Mesh, sourceId, pageId, pageLabel);
+    };
+
+    const buildPlane = (boundary: any[]) => {
+      if (!Array.isArray(boundary) || boundary.length < 3) return;
+      const pts: THREE.Vector3[] = [];
+      boundary.forEach((pt) => {
+        const v = toV3(pt);
+        if (v) pts.push(v);
+      });
+      if (pts.length < 3) return;
+
+      // Simple fan triangulation
+      const positions: number[] = [];
+      for (let i = 1; i < pts.length - 1; i++) {
+        const tri = [pts[0], pts[i], pts[i + 1]];
+        tri.forEach((v) => positions.push(v.x, v.y, v.z));
+      }
+
+      const geom = new THREE.BufferGeometry();
+      geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      geom.computeVertexNormals();
+
+      const mesh = new THREE.Mesh(geom, material.clone());
+      mesh.userData = { roof: true, sourceId, pageId };
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      this.buildingGroup.add(mesh);
+      this.registerRoofToSource(mesh, sourceId, pageId, pageLabel);
+    };
+
+    const handleRoofGroup = (roofObj: any) => {
+      if (!roofObj) return;
+
+      // Ridge visualization
+      const ridge = roofObj.ridge_line;
+      if (Array.isArray(ridge) && ridge.length >= 2) {
+        for (let i = 0; i < ridge.length - 1; i++) {
+          const a = toV3(ridge[i]);
+          const b = toV3(ridge[i + 1]);
+          if (a && b) addLine(a, b);
+        }
+      } else if (ridge?.start && ridge?.end) {
+        const a = toV3(ridge.start);
+        const b = toV3(ridge.end);
+        if (a && b) addLine(a, b);
+      }
+
+      // Eaves lines at eave height if provided
+      const eaves = roofObj.eaves;
+      if (Array.isArray(eaves)) {
+        eaves.forEach((pair: any) => {
+          const start = pair?.start ?? pair?.[0];
+          const end = pair?.end ?? pair?.[1];
+          if (!start || !end) return;
+          const a = toV3({ x: start.x ?? start[0], y: start.y ?? start[1], z: eaveHeight });
+          const b = toV3({ x: end.x ?? end[0], y: end.y ?? end[1], z: eaveHeight });
+          if (a && b) addLine(a, b);
+        });
+      }
+
+      // Roof planes
+      const planes = roofObj.roof_planes || [];
+      planes.forEach((pl: any) => {
+        if (Array.isArray(pl?.boundary)) buildPlane(pl.boundary);
+      });
+
+      // Gables
+      const gables = roofObj.gable_ends || [];
+      gables.forEach((g: any) => {
+        if (!g?.wall_line || !g?.peak) return;
+        const wl = g.wall_line;
+        const a = wl?.x1 !== undefined ? toV3({ x: wl.x1, y: wl.y1, z: eaveHeight }) : toV3(wl?.[0]);
+        const b = wl?.x2 !== undefined ? toV3({ x: wl.x2, y: wl.y2, z: eaveHeight }) : toV3(wl?.[1]);
+        const c = toV3(g.peak);
+        if (!a || !b || !c) return;
+        const geom = new THREE.BufferGeometry();
+        geom.setFromPoints([a, b, c]);
+        geom.setIndex([0, 1, 2]);
+        geom.computeVertexNormals();
+        const mesh = new THREE.Mesh(geom, material.clone());
+        mesh.userData = { roof: true, sourceId, pageId };
+        this.buildingGroup.add(mesh);
+        this.registerRoofToSource(mesh, sourceId, pageId, pageLabel);
+      });
+
+      // Valleys: visualize lines
+      const valleys = roofObj.valleys || roofObj.valley_lines || [];
+      valleys.forEach((pair: any) => {
+        const start = pair?.start ?? pair?.[0];
+        const end = pair?.end ?? pair?.[1];
+        const a = toV3(start);
+        const b = toV3(end);
+        if (a && b) addLine(a, b);
+      });
+    };
+
+    // Primary and cross roofs
+    handleRoofGroup(roofing.primary_roof);
+    handleRoofGroup(roofing.cross_roof);
+
+    // If only global props and no planes, fallback: draw ridge/eave box using defaults
+    if (!roofing.primary_roof && roofing.global_properties) {
+      const size = 10 * SCALE;
+      const a = new THREE.Vector3(-size, eaveHeight, -size);
+      const b = new THREE.Vector3(size, eaveHeight, -size);
+      const c = new THREE.Vector3(0, ridgeHeight, 0);
+      const geom = new THREE.BufferGeometry();
+      geom.setFromPoints([a, b, c]);
+      geom.setIndex([0, 1, 2]);
+      geom.computeVertexNormals();
+      const mesh = new THREE.Mesh(geom, material.clone());
+      mesh.userData = { roof: true, sourceId, pageId };
+      this.buildingGroup.add(mesh);
+      this.registerRoofToSource(mesh, sourceId, pageId, pageLabel);
+    }
   }
 
   private renderRoofEdges(edges: any, cx: number, cy: number, sourceId: string, pageId: string, pageLabel: string) {
